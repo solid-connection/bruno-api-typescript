@@ -1,49 +1,20 @@
 # Bruno 파일 작성 가이드 (백엔드 개발자용)
 
-> **목표**: 프론트엔드에서 자동으로 타입과 API 클라이언트를 생성할 수 있도록 Bruno 파일을 올바르게 작성하기
-
-## 📋 목차
-
-1. [Bruno 파일이란?](#bruno-파일이란)
-2. [기본 구조](#기본-구조)
-3. [필수 작성 규칙](#필수-작성-규칙)
-4. [도메인별 폴더 구조](#도메인별-폴더-구조)
-5. [실전 예시](#실전-예시)
-6. [자주 하는 실수](#자주-하는-실수)
-7. [체크리스트](#체크리스트)
-
----
-
-## Bruno 파일이란?
-
-`.bru` 파일은 API를 문서화하고 테스트할 수 있는 **코드 기반 API 클라이언트 파일**입니다.
-
-### 왜 Bruno를 사용하나요?
-
-✅ **Git 친화적**: Postman처럼 JSON 덩어리가 아니라 깔끔한 텍스트 파일
-✅ **협업 용이**: PR로 API 변경사항 리뷰 가능
-✅ **자동화**: 이 파일로 OpenAPI, TypeScript 타입, Mock 자동 생성
-✅ **실행 가능**: Bruno 앱으로 바로 API 테스트 가능
-
----
+> **핵심**: `docs` 블록에 응답 JSON을 정확히 작성하면 끝입니다.
 
 ## 기본 구조
-
-Bruno 파일은 여러 블록으로 구성됩니다:
 
 ```bru
 meta {
   name: API 이름
   type: http
-  seq: 1
-  done: true  # MSW 생성 제외 (선택사항)
+  done: true  # 선택사항: 백엔드 완료시 MSW 생성 건너뛰기
 }
 
 get /api/endpoint
 
 headers {
   Authorization: Bearer {{token}}
-  Content-Type: application/json
 }
 
 body:json {
@@ -55,42 +26,20 @@ body:json {
 docs {
   ```json
   {
-    "response": "example"
+    "id": 1,
+    "username": "johndoe"
   }
   ```
 }
-
-script:post-response {
-  // 테스트 스크립트 (선택사항)
-}
-
-tests {
-  // 검증 로직 (선택사항)
-}
 ```
-
-### 블록 설명
-
-| 블록 | 필수 | 설명 |
-|------|------|------|
-| `meta` | ✅ | 파일 메타데이터 (done 필드로 MSW 생성 제어 가능) |
-| HTTP 메서드 | ✅ | `get`, `post`, `put`, `delete` 등 |
-| `headers` | ⚠️ | 헤더 (인증 필요시 필수) |
-| `body:json` | ⚠️ | 요청 본문 (POST/PUT 등에서 필수) |
-| **`docs`** | **✅** | **응답 예시 (자동 생성의 핵심!)** |
-| `script:*` | ❌ | 스크립트 (선택) |
-| `tests` | ❌ | 테스트 (선택) |
-
----
 
 ## 필수 작성 규칙
 
-### ⭐ 가장 중요: `docs` 블록
+### 1. `docs` 블록이 핵심
 
 **`docs` 블록이 전부입니다!** 이 블록의 JSON으로 타입과 스키마가 자동 생성됩니다.
 
-#### ✅ 올바른 예시
-
+**올바른 예시:**
 ```bru
 docs {
   ```json
@@ -109,185 +58,82 @@ docs {
 }
 ```
 
-#### ❌ 잘못된 예시
+### 2. JSON 작성 규칙
 
-```bru
-docs {
-  # 이건 JSON이 아니라서 파싱 안됨!
-  응답 예시: { id: 1, username: "johndoe" }
-}
-```
+- ✅ **실제 응답과 동일하게** 작성
+- ✅ **모든 필드를 포함** (옵셔널 필드도)
+- ✅ **타입이 명확한 값 사용**:
+  - 문자열: `"hello"`
+  - 숫자: `123` 또는 `4.5`
+  - 불린: `true` / `false`
+  - 배열: `[1, 2, 3]` (최소 1개 요소 포함)
+  - 객체: `{ "key": "value" }`
+  - null: `null`
+- ✅ **날짜는 ISO 8601 형식**: `"2025-01-01T00:00:00Z"`
 
+### 3. 자주 하는 실수
+
+**❌ 잘못된 예시:**
 ```bru
 docs {
   ```json
-  // 주석 들어가면 JSON 파싱 실패!
   {
-    "id": 1  // 사용자 ID
+    id: 1,  // 키에 따옴표 없음
+    "name": '홍길동'  // 작은따옴표 사용
   }
   ```
 }
 ```
 
-### 📐 JSON 작성 규칙
-
-1. **실제 응답과 동일하게** 작성
-2. **모든 필드를 포함** (옵셔널 필드도!)
-3. **타입이 명확한 값 사용**:
-   - 문자열: `"hello"`
-   - 숫자: `123` 또는 `4.5`
-   - 불린: `true` / `false`
-   - 배열: `[1, 2, 3]`
-   - 객체: `{ "key": "value" }`
-   - null: `null`
-
-4. **날짜는 ISO 8601 형식**: `"2025-01-01T00:00:00Z"`
-5. **배열은 최소 1개 요소** 포함 (타입 추론용)
-
-#### 예시: 배열 처리
-
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "홍길동"
-    }
-  ]
-}
-```
-
-빈 배열 `[]`을 쓰면 타입 추론이 `Array<object>`로만 되므로, **반드시 예시 데이터 1개 이상 포함!**
-
----
-
-## 🎭 MSW Mock 생성 제어
-
-### `done` 필드란?
-
-`meta` 블록에 `done: true`를 추가하면 **MSW(Mock Service Worker) 핸들러 생성을 건너뜁니다**.
-
-이미 백엔드 API가 완성되어 Mock이 필요 없는 경우 사용하세요.
-
-#### MSW 생성 O (done 없음 또는 false)
-
+**❌ 빈 배열:**
 ```bru
-meta {
-  name: Get User Profile
-  type: http
-  seq: 1
-}
-
-get /users/profile
-
 docs {
   ```json
   {
-    "id": 1,
-    "name": "홍길동"
+    "users": []  // 타입 추론 불가
   }
   ```
 }
 ```
 
-→ **MSW 핸들러가 자동 생성됩니다**
-
-#### MSW 생성 X (done: true)
-
+**✅ 올바른 예시:**
 ```bru
-meta {
-  name: Get User Profile
-  type: http
-  seq: 1
-  done: true  # MSW 생성 건너뛰기
-}
-
-get /users/profile
-
 docs {
   ```json
   {
-    "id": 1,
-    "name": "홍길동"
+    "users": [
+      {
+        "id": 1,
+        "name": "예시"
+      }
+    ]
   }
   ```
 }
 ```
-
-→ **MSW 핸들러가 생성되지 않습니다** (이미 백엔드 완료)
-
-### 언제 done을 사용하나요?
-
-| 상황 | done 설정 | 이유 |
-|------|----------|------|
-| 백엔드 API 개발 중 | ❌ (생략 또는 false) | 프론트엔드가 Mock으로 개발 |
-| 백엔드 API 완료 | ✅ `done: true` | 실제 API 사용, Mock 불필요 |
-| 레거시 API | ✅ `done: true` | 이미 운영 중, Mock 불필요 |
-
----
 
 ## 도메인별 폴더 구조
 
-### 권장 구조
-
 ```
 bruno/
-├── 지원서 [applications]/    # 지원서 도메인
+├── 지원서 [applications]/    # 한글명 [영문키] 형식
 │   ├── get-list.bru
-│   ├── get-detail.bru
-│   ├── create.bru
-│   └── update.bru
-├── 사용자 [users]/           # 사용자 도메인
-│   ├── profile/
-│   │   ├── get.bru
-│   │   └── update.bru
-│   └── auth/
-│       ├── login.bru
-│       └── logout.bru
-├── 대학 [universities]/      # 대학 도메인
-│   ├── get-list.bru
-│   └── get-detail.bru
+│   └── create.bru
+├── 사용자 [users]/
+│   └── get-profile.bru
 └── bruno.json
 ```
 
-### 폴더명 작성 규칙
-
-폴더명은 **"한글명 [EnglishKey]"** 형식으로 작성합니다:
-
-- ✅ `사용자 [users]/` - 한글명으로 가독성 확보, 대괄호 안 영문 키로 파일명 생성
-- ✅ `지원서 [applications]/` - API 도메인과 매칭되는 영문 키 사용
-- ✅ `대학 [universities]/` - 복수형 사용 권장
-
-**중요**: 대괄호 `[]` 안의 영문 키만 추출되어 파일명 및 도메인으로 사용됩니다.
-
-**예시**:
-- `사용자 [admin]/get-list.bru` → 도메인: `admin`, 생성될 파일: `admin/useGetAdminList.ts`
-- `상품 [products]/create.bru` → 도메인: `products`, 생성될 파일: `products/useCreateProducts.ts`
-
-### 파일명 네이밍 컨벤션
-
-| 작업 | 파일명 예시 |
-|------|-------------|
-| 목록 조회 | `get-list.bru` |
-| 단건 조회 | `get-detail.bru` 또는 `get-{id}.bru` |
-| 생성 | `create.bru` |
-| 수정 | `update.bru` |
-| 삭제 | `delete.bru` |
-| 특수 작업 | `submit.bru`, `approve.bru` 등 |
-
-**파일명 규칙**: 영문 소문자와 하이픈(`-`)만 사용하세요.
-
----
+**폴더명 규칙**: `한글명 [EnglishKey]` 형식으로 작성하면, 대괄호 안의 `EnglishKey`만 사용됩니다.
 
 ## 실전 예시
 
-### 예시 1: GET - 목록 조회
+### GET - 목록 조회
 
 ```bru
 meta {
   name: Get Competitors
   type: http
-  seq: 1
 }
 
 get /applications/competitors
@@ -303,11 +149,8 @@ docs {
       {
         "universityId": 1,
         "koreanName": "데겐도르프대학",
-        "englishName": "Deggendorf Institute of Technology",
         "studentCapacity": 150,
-        "applicantCount": 120,
-        "competitionRate": 0.8,
-        "averageGpa": 4.2
+        "applicantCount": 120
       }
     ],
     "secondChoice": [],
@@ -317,18 +160,12 @@ docs {
 }
 ```
 
-**포인트**:
-- ✅ 빈 배열도 명시 (`secondChoice`, `thirdChoice`)
-- ✅ 모든 필드 타입이 명확 (숫자는 숫자로, 문자열은 문자열로)
-- ✅ 실제 응답 구조와 동일
-
-### 예시 2: POST - 생성
+### POST - 생성
 
 ```bru
 meta {
   name: Create Application
   type: http
-  seq: 2
 }
 
 post /applications
@@ -341,12 +178,7 @@ headers {
 body:json {
   {
     "universityId": 1,
-    "choice": "first",
-    "documents": [
-      "transcript.pdf",
-      "recommendation.pdf"
-    ],
-    "personalStatement": "지원 동기입니다..."
+    "choice": "first"
   }
 }
 
@@ -355,27 +187,18 @@ docs {
   {
     "id": 123,
     "status": "pending",
-    "submittedAt": "2025-11-12T05:30:00Z",
-    "universityId": 1,
-    "choice": "first",
-    "message": "지원서가 성공적으로 제출되었습니다."
+    "submittedAt": "2025-11-12T05:30:00Z"
   }
   ```
 }
 ```
 
-**포인트**:
-- ✅ `body:json` 블록에 요청 데이터
-- ✅ `docs` 블록에 응답 데이터
-- ✅ 날짜는 ISO 8601 형식
-
-### 예시 3: GET - 상세 조회 (Path Parameter)
+### GET - 상세 조회 (Path Parameter)
 
 ```bru
 meta {
   name: Get Application Detail
   type: http
-  seq: 3
 }
 
 get /applications/:id
@@ -389,241 +212,45 @@ docs {
   {
     "id": 123,
     "userId": 456,
-    "universityId": 1,
     "status": "approved",
-    "submittedAt": "2025-11-12T05:30:00Z",
-    "reviewedAt": "2025-11-13T10:00:00Z",
     "reviewer": {
       "id": 789,
-      "name": "심사자",
-      "department": "입학처"
-    },
-    "documents": [
-      {
-        "id": 1,
-        "name": "성적증명서",
-        "url": "https://example.com/docs/1.pdf",
-        "uploadedAt": "2025-11-12T05:00:00Z"
-      }
-    ]
+      "name": "심사자"
+    }
   }
   ```
 }
 ```
 
-**포인트**:
-- ✅ Path parameter는 `:id` 형식으로 표기
-- ✅ 중첩된 객체 (`reviewer`)도 명확히
-- ✅ 배열 안의 객체도 모든 필드 포함
+## MSW 생성 제어
 
-### 예시 4: PUT - 수정
+`meta.done: true`를 추가하면 MSW 핸들러 생성을 건너뜁니다.
 
 ```bru
 meta {
-  name: Update Profile
+  name: Get User Profile
   type: http
-  seq: 4
-}
-
-put /users/profile
-
-headers {
-  Authorization: Bearer {{token}}
-  Content-Type: application/json
-}
-
-body:json {
-  {
-    "firstName": "길동",
-    "lastName": "홍",
-    "phoneNumber": "010-1234-5678",
-    "address": {
-      "zipCode": "12345",
-      "city": "서울",
-      "detail": "강남구 테헤란로 123"
-    }
-  }
-}
-
-docs {
-  ```json
-  {
-    "id": 1,
-    "username": "gildong",
-    "email": "gildong@example.com",
-    "firstName": "길동",
-    "lastName": "홍",
-    "phoneNumber": "010-1234-5678",
-    "address": {
-      "zipCode": "12345",
-      "city": "서울",
-      "detail": "강남구 테헤란로 123"
-    },
-    "updatedAt": "2025-11-12T06:00:00Z"
-  }
-  ```
+  done: true  # 백엔드 완료, MSW 불필요
 }
 ```
 
-### 예시 5: DELETE
-
-```bru
-meta {
-  name: Delete Application
-  type: http
-  seq: 5
-}
-
-delete /applications/:id
-
-headers {
-  Authorization: Bearer {{token}}
-}
-
-docs {
-  ```json
-  {
-    "success": true,
-    "message": "지원서가 삭제되었습니다.",
-    "deletedId": 123
-  }
-  ```
-}
-```
-
----
-
-## 자주 하는 실수
-
-### ❌ 실수 1: docs 블록 없음
-
-```bru
-get /users/profile
-
-# docs 블록이 없으면 타입 생성 안됨!
-```
-
-**해결**: docs 블록은 필수!
-
-### ❌ 실수 2: 잘못된 JSON 형식
-
-```bru
-docs {
-  ```json
-  {
-    id: 1,  // ❌ 키에 따옴표 없음
-    "name": '홍길동'  // ❌ 작은따옴표 사용
-  }
-  ```
-}
-```
-
-**해결**: 표준 JSON만 사용!
-
-```json
-{
-  "id": 1,
-  "name": "홍길동"
-}
-```
-
-### ❌ 실수 3: 빈 배열
-
-```bru
-docs {
-  ```json
-  {
-    "users": []  // ❌ 타입 추론 불가
-  }
-  ```
-}
-```
-
-**해결**: 최소 1개 요소 포함
-
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "예시"
-    }
-  ]
-}
-```
-
-### ❌ 실수 4: 주석 포함
-
-```bru
-docs {
-  ```json
-  {
-    // 사용자 ID
-    "id": 1  // ❌ JSON 표준에 주석 없음
-  }
-  ```
-}
-```
-
-**해결**: 주석 제거하고 순수 JSON만
-
-### ❌ 실수 5: 타입 모호성
-
-```bru
-docs {
-  ```json
-  {
-    "createdAt": "어제"  // ❌ 날짜 형식 불명확
-  }
-  ```
-}
-```
-
-**해결**: ISO 8601 형식 사용
-
-```json
-{
-  "createdAt": "2025-11-12T05:30:00Z"
-}
-```
-
----
+**언제 사용하나요?**
+- ✅ 백엔드 API 완료 → `done: true`
+- ❌ 백엔드 API 개발 중 → `done` 생략 (MSW 생성)
 
 ## 체크리스트
 
-새 API 엔드포인트를 만들 때 다음을 확인하세요:
-
-### 📋 파일 생성
-
-- [ ] 올바른 도메인 폴더에 위치
-- [ ] 파일명이 영문 소문자 + 하이픈
-- [ ] 확장자가 `.bru`
-
-### 📝 내용 작성
+새 API 엔드포인트를 만들 때:
 
 - [ ] `meta` 블록 작성 (name 필수)
-- [ ] MSW 필요 여부 판단 후 `done: true` 추가 (백엔드 완료시)
 - [ ] HTTP 메서드와 경로 명확히 표기
-- [ ] 인증이 필요하면 `headers` 블록에 Authorization
+- [ ] 인증 필요시 `headers` 블록에 Authorization
 - [ ] POST/PUT이면 `body:json` 블록 작성
-- [ ] **`docs` 블록 반드시 작성**
-
-### ✅ docs 블록 검증
-
+- [ ] **`docs` 블록 반드시 작성** (가장 중요!)
 - [ ] JSON이 유효한가? (온라인 validator로 확인)
 - [ ] 모든 필드가 포함되었나?
-- [ ] 타입이 명확한가? (문자열은 `"..."`, 숫자는 숫자)
 - [ ] 배열에 최소 1개 요소가 있나?
 - [ ] 날짜는 ISO 8601 형식인가?
-- [ ] 실제 백엔드 응답과 일치하나?
-
-### 🧪 테스트
-
-- [ ] Bruno 앱으로 실행 가능한가?
-- [ ] `npm run api:generate` 실행 시 에러 없는가?
-- [ ] 생성된 OpenAPI 스펙이 정확한가?
-
----
 
 ## 빠른 템플릿
 
@@ -633,7 +260,6 @@ docs {
 meta {
   name: [API 이름]
   type: http
-  seq: 1
 }
 
 get /[경로]
@@ -658,7 +284,6 @@ docs {
 meta {
   name: [API 이름]
   type: http
-  seq: 1
 }
 
 post /[경로]
@@ -684,36 +309,12 @@ docs {
 }
 ```
 
----
+## 문제 해결
 
-## 도움말
-
-### JSON 유효성 검사
-
-온라인 툴 사용: https://jsonlint.com/
-
-### Bruno 앱 설치
-
-https://www.usebruno.com/downloads
-
-### 문제 해결
-
-1. **파싱 에러**: docs 블록의 JSON을 복사해서 JSONLint로 검증
+1. **파싱 에러**: docs 블록의 JSON을 복사해서 [JSONLint](https://jsonlint.com/)로 검증
 2. **타입이 이상함**: 값의 타입 확인 (숫자는 따옴표 없이, 문자열은 따옴표)
 3. **필드가 안보임**: docs 블록에 해당 필드 추가했는지 확인
 
 ---
 
-## 마무리
-
-Bruno 파일을 올바르게 작성하면:
-
-✅ 프론트엔드에서 TypeScript 타입 자동 생성
-✅ API 클라이언트 함수 자동 생성
-✅ Mock 데이터 자동 생성
-✅ 변경사항 자동 추적
-✅ 문서화 자동 완성
-
 **핵심은 `docs` 블록을 정확하게 작성하는 것!**
-
-궁금한 점이 있으면 팀에게 문의하세요! 🚀
