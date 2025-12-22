@@ -4,7 +4,7 @@
 
 ## 기본 구조
 
-```bru
+`````bru
 meta {
   name: API 이름
   type: http
@@ -24,14 +24,14 @@ body:json {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe"
   }
-  ```
+  ````
 }
-```
+`````
 
 ## 필수 작성 규칙
 
@@ -40,9 +40,9 @@ docs {
 **`docs` 블록이 전부입니다!** 이 블록의 JSON으로 타입과 스키마가 자동 생성됩니다.
 
 **올바른 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe",
@@ -54,9 +54,9 @@ docs {
     },
     "tags": ["developer", "backend"]
   }
-  ```
+  ````
 }
-```
+`````
 
 ### 2. JSON 작성 규칙
 
@@ -74,32 +74,32 @@ docs {
 ### 3. 자주 하는 실수
 
 **❌ 잘못된 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     id: 1,  // 키에 따옴표 없음
     "name": '홍길동'  // 작은따옴표 사용
   }
-  ```
+  ````
 }
-```
+`````
 
 **❌ 빈 배열:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "users": []  // 타입 추론 불가
   }
-  ```
+  ````
 }
-```
+`````
 
 **✅ 올바른 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "users": [
       {
@@ -108,9 +108,9 @@ docs {
       }
     ]
   }
-  ```
+  ````
 }
-```
+`````
 
 ## 도메인별 폴더 구조
 
@@ -130,7 +130,7 @@ bruno/
 
 ### GET - 목록 조회
 
-```bru
+`````bru
 meta {
   name: Get Competitors
   type: http
@@ -143,7 +143,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "firstChoice": [
       {
@@ -156,13 +156,13 @@ docs {
     "secondChoice": [],
     "thirdChoice": []
   }
-  ```
+  ````
 }
-```
+`````
 
 ### POST - 생성
 
-```bru
+`````bru
 meta {
   name: Create Application
   type: http
@@ -183,19 +183,19 @@ body:json {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 123,
     "status": "pending",
     "submittedAt": "2025-11-12T05:30:00Z"
   }
-  ```
+  ````
 }
-```
+`````
 
 ### GET - 상세 조회 (Path Parameter)
 
-```bru
+`````bru
 meta {
   name: Get Application Detail
   type: http
@@ -208,7 +208,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 123,
     "userId": 456,
@@ -218,9 +218,9 @@ docs {
       "name": "심사자"
     }
   }
-  ```
+  ````
 }
-```
+`````
 
 ## MSW 생성 제어
 

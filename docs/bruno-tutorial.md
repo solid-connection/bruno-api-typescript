@@ -80,7 +80,7 @@ headers {
 
 ### 단계 5: docs 블록 추가 (가장 중요!)
 
-```bru
+`````bru
 meta {
   name: Get User Profile
   type: http
@@ -93,7 +93,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe",
@@ -102,9 +102,9 @@ docs {
     "lastName": "Doe",
     "createdAt": "2025-01-01T00:00:00Z"
   }
-  ```
+  ````
 }
-```
+`````
 
 **설명**:
 - `docs` 블록에 **실제 API 응답 JSON** 작성
@@ -178,7 +178,7 @@ body:json {
 
 ### 단계 4: 응답 docs 추가
 
-```bru
+`````bru
 meta {
   name: Create Product
   type: http
@@ -201,7 +201,7 @@ body:json {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 101,
     "name": "Laptop",
@@ -211,9 +211,9 @@ docs {
     "createdAt": "2025-12-23T00:00:00Z",
     "message": "Product created successfully"
   }
-  ```
+  ````
 }
-```
+`````
 
 ### 완성!
 
@@ -234,7 +234,7 @@ touch bruno/products/get-product.bru
 
 ### 단계 2: Path Parameter 포함 경로 작성
 
-```bru
+`````bru
 meta {
   name: Get Product by ID
   type: http
@@ -247,7 +247,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 101,
     "name": "Laptop",
@@ -257,9 +257,9 @@ docs {
     "description": "High-performance laptop for professionals",
     "createdAt": "2025-12-23T00:00:00Z"
   }
-  ```
+  ````
 }
-```
+`````
 
 **설명**:
 - `:id`: Path Parameter (동적 값)
@@ -279,7 +279,7 @@ Bruno 앱에서:
 ### 목표
 필터링이 가능한 상품 목록 조회 (`/products?category=Electronics&inStock=true`)
 
-```bru
+`````bru
 meta {
   name: Get Products List
   type: http
@@ -292,7 +292,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "products": [
       {
@@ -314,9 +314,9 @@ docs {
     "page": 1,
     "pageSize": 10
   }
-  ```
+  ````
 }
-```
+`````
 
 **설명**:
 - Query Parameter는 경로에 적지 않아도 됨
@@ -359,7 +359,7 @@ bruno/
 <details>
 <summary>정답 보기</summary>
 
-```bru
+`````bru
 meta {
   name: Delete Product
   type: http
@@ -372,15 +372,15 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "success": true,
     "message": "Product deleted",
     "deletedId": 101
   }
-  ```
+  ````
 }
-```
+`````
 </details>
 
 ### 연습 2: 상품 업데이트 API 만들기
@@ -394,7 +394,7 @@ docs {
 <details>
 <summary>정답 보기</summary>
 
-```bru
+`````bru
 meta {
   name: Update Product
   type: http
@@ -415,7 +415,7 @@ body:json {
 }
 
 docs {
-  ```json
+  ````json
   {
     "id": 101,
     "name": "Laptop",
@@ -424,9 +424,9 @@ docs {
     "inStock": false,
     "updatedAt": "2025-12-23T01:00:00Z"
   }
-  ```
+  ````
 }
-```
+`````
 </details>
 
 ---
@@ -436,48 +436,48 @@ docs {
 ### 실수 1: JSON 형식 오류
 
 **❌ 잘못된 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     id: 1,  // 키에 따옴표 없음
     "name": '홍길동'  // 작은따옴표 사용
   }
-  ```
+  ````
 }
-```
+`````
 
 **✅ 올바른 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "name": "홍길동"
   }
-  ```
+  ````
 }
-```
+`````
 
 **해결**: [JSONLint](https://jsonlint.com/)에서 JSON 검증
 
 ### 실수 2: 빈 배열
 
 **❌ 잘못된 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "products": []  // 타입 추론 불가
   }
-  ```
+  ````
 }
-```
+`````
 
 **✅ 올바른 예시:**
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "products": [
       {
@@ -486,9 +486,9 @@ docs {
       }
     ]
   }
-  ```
+  ````
 }
-```
+`````
 
 ### 실수 3: docs 블록 누락
 

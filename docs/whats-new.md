@@ -32,7 +32,7 @@ headers {
 
 ### Bruno 파일 작성 (유일한 변경점!)
 
-```bru
+`````bru
 meta {
   name: Get User Profile
   type: http
@@ -45,15 +45,15 @@ headers {
 }
 
 docs {                          ← 이 부분만 추가!
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe",
     "email": "john@example.com"
   }
-  ```
+  ````
 }
-```
+`````
 
 **변경점**: `docs` 블록에 응답 JSON 예시 작성
 
@@ -79,16 +79,16 @@ npx bruno-api generate-hooks -i ./bruno -o ./src/apis
 **이전**: 선택사항  
 **지금**: 필수 (타입 생성을 위해)
 
-```bru
+`````bru
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe"
   }
-  ```
+  ````
 }
-```
+`````
 
 ### 2. 한글 폴더명 지원
 
@@ -167,20 +167,20 @@ body:json {
 
 **1단계**: docs 블록만 추가
 
-```bash
+`````bash
 # 기존 파일
 vim users/get-profile.bru
 
 # docs 블록 추가
 docs {
-  ```json
+  ````json
   {
     "id": 1,
     "username": "johndoe"
   }
-  ```
+  ````
 }
-```
+`````
 
 **2단계**: 명령어 실행
 
@@ -243,7 +243,7 @@ headers {
 
 ### 변경 후
 
-```bru
+`````bru
 meta {
   name: Get Products
   type: http
@@ -256,7 +256,7 @@ headers {
 }
 
 docs {
-  ```json
+  ````json
   {
     "products": [
       {
@@ -267,9 +267,9 @@ docs {
     ],
     "total": 1
   }
-  ```
+  ````
 }
-```
+`````
 
 **차이**: docs 블록 추가 (약 10줄)
 
