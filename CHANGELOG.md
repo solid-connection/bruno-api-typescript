@@ -1,9 +1,9 @@
-# Changelog
+# 변경 이력
 
-All notable changes to this project will be documented in this file.
+이 프로젝트의 모든 주요 변경사항을 기록합니다.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+형식은 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)를 기반으로 하며,
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 따릅니다.
 
 ## [Unreleased]
 
@@ -104,9 +104,9 @@ return folderName; // 대괄호가 없으면 폴더명 그대로 반환
 
 ---
 
-## Migration Guide
+## 마이그레이션 가이드
 
-### For Existing Projects
+### 기존 프로젝트용
 
 #### 1. 한글 폴더명 사용 (선택사항)
 기존 영문 폴더명을 그대로 사용하거나, 한글 폴더명으로 변경할 수 있습니다.
