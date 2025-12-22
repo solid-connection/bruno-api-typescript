@@ -36,11 +36,13 @@ npm run build
 GitHub Settings → Developer settings → GitHub Apps → New GitHub App
 
 필수 권한:
+
 - **Contents**: Read & Write
-- **Pull requests**: Read & Write  
+- **Pull requests**: Read & Write
 - **Workflows**: Read & Write
 
 생성 후:
+
 - **App ID** 복사
 - **Private Key** 다운로드
 
@@ -90,8 +92,9 @@ docs {
 
 ## 추가 문서
 
-- **[GitHub Apps 상세 설정 가이드](./docs/github-apps-simple.md)** - Workflow 파일 예시 포함
-- **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - Bruno 파일 작성 규칙
+- **[GitHub Apps 설정 가이드](./docs/github-apps-simple.md)** - Workflow 파일 예시 포함
+- **[Bruno 파일 작성 튜토리얼](./docs/bruno-tutorial.md)** - 단계별 따라하기
+- **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 상세 레퍼런스
 
 ## 라이선스
 
