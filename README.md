@@ -176,8 +176,16 @@ Change Tracking:
 
 ## Additional Documentation
 
-- **[Bruno Guide](./docs/bruno-guide.md)** - Detailed guide for backend developers
+### Getting Started
 - **[Quick Start](./docs/quickstart.md)** - 5-minute guide
+- **[What's New?](./docs/whats-new.md)** - For existing Bruno users
+
+### Writing Bruno Files
+- **[Bruno Tutorial](./docs/bruno-tutorial.md)** - Step-by-step guide (beginners)
+- **[Bruno Guide](./docs/bruno-guide.md)** - Reference (advanced)
+
+### Automation (Optional)
+- **[GitHub Apps Setup (5min)](./docs/github-apps-simple.md)** - Auto-sync Bruno ↔ Frontend
 
 ## License
 

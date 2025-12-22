@@ -183,8 +183,16 @@ bruno-api generate [옵션]
 
 ## 추가 문서
 
-- **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 백엔드 개발자용 상세 가이드
+### 시작하기
 - **[빠른 시작](./docs/quickstart.md)** - 5분 완성 가이드
+- **[무엇이 달라졌나?](./docs/whats-new.md)** - 기존 Bruno 사용자 필독
+
+### Bruno 파일 작성
+- **[Bruno 파일 작성 튜토리얼](./docs/bruno-tutorial.md)** - 단계별 따라하기 (초보자용)
+- **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 레퍼런스 (숙련자용)
+
+### 자동화 (선택사항)
+- **[GitHub Apps 연결 (5분)](./docs/github-apps-simple.md)** - Bruno ↔ 프론트엔드 자동 연결
 
 ## 라이선스
 

@@ -6,7 +6,14 @@ Documentation for bruno-api-typescript (Backend Developer Focus)
 
 ### Getting Started
 - **[Quick Start](quickstart.md)** - Get started in 5 minutes
-- **[Bruno Guide](bruno-guide.md)** - How to write .bru files (Essential!)
+- **[What's New?](whats-new.md)** - For existing Bruno users
+
+### Writing Bruno Files
+- **[Bruno Tutorial](bruno-tutorial.md)** - Step-by-step guide (beginners)
+- **[Bruno Guide](bruno-guide.md)** - Reference (advanced)
+
+### Automation
+- **[GitHub Apps Setup (5min)](github-apps-simple.md)** - Auto-sync Bruno ↔ Frontend
 
 ### Archived (Frontend/Automation)
 Advanced guides for frontend integration and automation are available in the [archived](./archived/) folder:
@@ -22,7 +29,11 @@ Advanced guides for frontend integration and automation are available in the [ar
 
 **First time here?** Start with [Quick Start](quickstart.md)
 
-**Writing Bruno files?** See [Bruno Guide](bruno-guide.md)
+**Existing Bruno user?** Check [What's New?](whats-new.md)
+
+**Writing Bruno files?** Try [Bruno Tutorial](bruno-tutorial.md) (step-by-step)
+
+**Need automation?** See [GitHub Apps Setup](github-apps-simple.md) (5 minutes)
 
 ---
 
@@ -31,12 +42,15 @@ Advanced guides for frontend integration and automation are available in the [ar
 ```
 docs/
 ├── README.md              (This file)
-├── quickstart.md         (5-minute start guide)
-├── bruno-guide.md        (Writing .bru files - Essential!)
-└── archived/             (Frontend/Automation guides)
+├── quickstart.md          (5-minute start guide)
+├── whats-new.md           (What changed? For existing users)
+├── bruno-tutorial.md      (Step-by-step tutorial)
+├── bruno-guide.md         (Reference guide)
+├── github-apps-simple.md  (5-minute automation setup)
+└── archived/              (Advanced guides)
     ├── frontend-guide.md
     ├── github-actions.md
-    ├── github-apps.md
+    ├── github-apps.md     (Detailed version)
     ├── msw-guide.md
     └── workflow-templates.md
 ```
