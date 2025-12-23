@@ -28,7 +28,15 @@ export function extractApiFunction(parsed: ParsedBrunoFile, filePath: string): A
   }
 
   // .bru 파일명에서 함수명 생성
-  const fileName = filePath.split('/').pop()?.replace('.bru', '') || '';
+  let fileName = filePath.split('/').pop()?.replace('.bru', '') || '';
+  
+  // [한국어 키] 영어 패턴 추출: [멘토 목록 조회] get-mentor-list → get-mentor-list
+  const bracketPattern = /^\[[^\]]+\]\s+(.+)$/;
+  const bracketMatch = fileName.match(bracketPattern);
+  if (bracketMatch) {
+    fileName = bracketMatch[1].trim(); // 대괄호 뒤의 영문 부분만 사용
+  }
+  
   const functionName = toCamelCase(fileName);
   const responseType = functionNameToTypeName(functionName);
 

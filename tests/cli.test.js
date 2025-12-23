@@ -232,6 +232,33 @@ describe('새로운 폴더명 패턴 테스트', () => {
 
     console.log('✅ [한글명] 숫자 영문키 패턴 테스트 통과');
   });
+
+  test('[한국어 키] 영어 파일명 패턴 추출', () => {
+    const inputDir = join(FIXTURES_DIR, 'bruno');
+    const outputDir = join(TEST_OUTPUT_DIR, 'apis-filename-pattern');
+
+    execSync(`node dist/cli/index.js generate-hooks -i ${inputDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // QueryKeys 파일 확인
+    const queryKeysFile = join(outputDir, 'queryKeys.ts');
+    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
+
+    // [목록 조회] get-list.bru → getList로 추출되어야 함
+    assert.ok(queryKeysContent.includes('getList'), 'getList 쿼리 키가 생성되어야 함');
+    assert.ok(queryKeysContent.includes("'7 Admin.getList'"), '7 Admin.getList 쿼리 키가 생성되어야 함');
+
+    // 훅 파일 확인
+    const hookFile = join(outputDir, '7 Admin', 'get-getList.ts');
+    assert.ok(existsSync(hookFile), '[목록 조회] get-list.bru에서 getList 훅이 생성되어야 함');
+
+    const hookContent = readFileSync(hookFile, 'utf-8');
+    assert.ok(hookContent.includes('getList'), '훅 내용에 getList가 포함되어야 함');
+    assert.ok(hookContent.includes('useGetList'), 'useGetList 훅이 생성되어야 함');
+
+    console.log('✅ [한국어 키] 영어 파일명 패턴 테스트 통과');
+  });
 });
 
 describe('상태 코드별 응답 파싱 테스트', () => {

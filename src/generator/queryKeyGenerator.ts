@@ -35,7 +35,14 @@ export function generateQueryKeyStructure(
       domain = pathParts[brunoIndex + 1];
     }
 
-    const fileName = path.split('/').pop()?.replace('.bru', '') || '';
+    let fileName = path.split('/').pop()?.replace('.bru', '') || '';
+
+    // [한국어 키] 영어 패턴 추출: [멘토 목록 조회] get-mentor-list → get-mentor-list
+    const bracketPattern = /^\[[^\]]+\]\s+(.+)$/;
+    const bracketMatch = fileName.match(bracketPattern);
+    if (bracketMatch) {
+      fileName = bracketMatch[1].trim(); // 대괄호 뒤의 영문 부분만 사용
+    }
 
     if (!structure[domain]) {
       structure[domain] = {};
