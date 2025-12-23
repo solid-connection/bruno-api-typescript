@@ -5,6 +5,7 @@
 ## 왜 필요한가?
 
 Bruno 저장소에서 `.bru` 파일이 변경되면, 프론트엔드 저장소에 자동으로:
+
 - React Query hooks 생성
 - TypeScript 타입 생성
 - PR 자동 생성
@@ -26,16 +27,19 @@ Bruno 저장소에서 `.bru` 파일이 변경되면, 프론트엔드 저장소�
 #### 1-2. 앱 정보 입력
 
 **필수 입력 사항**:
+
 - GitHub App name: `bruno-sync-app` (조직명 추가 가능)
 - Homepage URL: `https://github.com/your-org/bruno-api`
 - Webhook: **비활성화** (체크 해제)
 
 **권한 설정 (Repository permissions)**:
+
 - **Contents**: Read & Write
 - **Pull requests**: Read & Write
 - **Workflows**: Read & Write
 
 **Where can this GitHub App be installed?**:
+
 - **Only on this account** 선택 (조직 계정이면 조직 선택)
 
 #### 1-3. 생성 및 Private Key 다운로드
@@ -46,6 +50,7 @@ Bruno 저장소에서 `.bru` 파일이 변경되면, 프론트엔드 저장소�
 4. `bruno-sync-app.{date}.private-key.pem` 파일 다운로드
 
 **App ID 복사**:
+
 - 페이지 상단에 표시된 **App ID** 복사 (예: `123456`)
 
 ### 2단계: App 설치 (1분)
@@ -61,6 +66,7 @@ Bruno 저장소에서 `.bru` 파일이 변경되면, 프론트엔드 저장소�
 #### 2-2. Installation ID 확인
 
 설치 후 URL을 확인하세요:
+
 ```
 https://github.com/settings/installations/{installation_id}
 ```
@@ -99,14 +105,14 @@ on:
     branches:
       - main
     paths:
-      - '**/*.bru'
+      - "**/*.bru"
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Generate App Token
         id: app-token
         uses: actions/create-github-app-token@v1
@@ -114,8 +120,8 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: "frontend-repo"  # 프론트엔드 저장소 이름
-      
+          repositories: "frontend-repo" # 프론트엔드 저장소 이름
+
       - name: Trigger Frontend Workflow
         run: |
           curl -X POST \
@@ -126,6 +132,7 @@ jobs:
 ```
 
 **수정 필요**:
+
 - `frontend-repo`: 실제 프론트엔드 저장소 이름으로 변경
 
 #### 프론트엔드 저장소 Workflow
@@ -144,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Generate App Token
         id: app-token
         uses: actions/create-github-app-token@v1
@@ -152,29 +159,29 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      
+
       - name: Clone Bruno Repo
         run: |
           git clone https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository_owner }}/bruno-api.git /tmp/bruno
-      
+
       - name: Clone bruno-api-typescript
         run: |
           git clone https://github.com/solid-connection/bruno-api-typescript.git /tmp/bruno-api-typescript
-      
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Build bruno-api-typescript
         working-directory: /tmp/bruno-api-typescript
         run: |
           npm install
           npm run build
-      
+
       - name: Generate Hooks
         run: |
           node /tmp/bruno-api-typescript/dist/cli/index.js generate-hooks -i /tmp/bruno -o ./src/apis
-      
+
       - name: Create PR
         uses: peter-evans/create-pull-request@v5
         with:
@@ -184,15 +191,16 @@ jobs:
           title: "🔄 API Sync from Bruno"
           body: |
             ## Bruno API 자동 동기화
-            
+
             Bruno 저장소가 업데이트되어 자동으로 hooks를 생성했습니다.
-            
+
             **변경사항**:
             - React Query hooks 업데이트
             - TypeScript 타입 업데이트
 ```
 
 **수정 필요**:
+
 - `bruno-api`: 실제 Bruno 저장소 이름으로 변경
 - `bruno-api-typescript`: 실제 bruno-api-typescript 저장소 이름으로 변경 (기본값: `solid-connection/bruno-api-typescript`)
 
@@ -227,6 +235,7 @@ git push origin main
 **원인**: App 권한 부족
 
 **해결**:
+
 1. GitHub App 설정 → **Permissions** 확인
 2. Contents, Pull requests, Workflows가 **Read & Write**인지 확인
 3. 권한 변경 후 → **Install App** → 재설치
@@ -236,6 +245,7 @@ git push origin main
 **원인**: Secret에 키가 잘못 입력됨
 
 **해결**:
+
 1. `.pem` 파일을 텍스트 에디터로 열기
 2. `-----BEGIN RSA PRIVATE KEY-----`부터 `-----END RSA PRIVATE KEY-----`까지 전체 복사
 3. Secret 다시 생성
@@ -245,6 +255,7 @@ git push origin main
 **원인**: `.bru` 파일이 변경되지 않음
 
 **해결**:
+
 - Bruno 저장소에서 `.bru` 파일을 수정하고 푸시
 - Workflow 파일의 `paths` 필터 확인
 
@@ -253,6 +264,7 @@ git push origin main
 **원인**: npm 패키지가 아니므로 `npx`로 실행 불가
 
 **해결**:
+
 - Workflow에서 저장소를 클론하고 빌드한 후 사용
 - 위의 Workflow 예시처럼 `git clone` → `npm install` → `npm run build` → `node dist/cli/index.js` 순서로 실행
 
@@ -265,4 +277,3 @@ git push origin main
 ---
 
 **설정 완료! 🎉**
-
