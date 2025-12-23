@@ -128,10 +128,8 @@ export function parseBrunoFile(filePath: string): ParsedBrunoFile {
       if (currentBlock === 'docs') {
         if (trimmed === '```json' || trimmed === '```') {
           inCodeBlock = !inCodeBlock;
-          if (!inCodeBlock) {
-            // 코드 블록 종료
-            continue;
-          }
+          // 코드 블록 라인도 포함 (정규식 매칭을 위해)
+          blockContent.push(line);
           continue;
         }
       }
@@ -230,15 +228,43 @@ function parseDocs(result: ParsedBrunoFile, lines: string[]): void {
 
 /**
  * docs 블록에서 JSON 추출
+ * 상태 코드별 응답 지원: ## 200 OK 형식
  */
 export function extractJsonFromDocs(docs: string): any {
   try {
-    // JSON 코드 블록 찾기
+    // ## 200 OK 형식의 상태 코드별 응답 지원
+    // 패턴: ## 200 OK (또는 ## 200) 다음에 빈 줄과 코드 블록
+    const statusCodePattern = /##\s*(\d+)\s+[^\n]*(?:\n|$)(?:[^\n]*\n)*?\s*```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/g;
+    let match;
+    let json200 = null;
+    
+    // 모든 상태 코드 응답 찾기
+    while ((match = statusCodePattern.exec(docs)) !== null) {
+      const statusCode = parseInt(match[1]);
+      const jsonContent = match[2].trim();
+      
+      // 200 OK만 사용
+      if (statusCode === 200) {
+        try {
+          json200 = JSON.parse(jsonContent);
+          break; // 200 OK를 찾으면 중단
+        } catch (e) {
+          // JSON 파싱 실패시 무시
+        }
+      }
+    }
+    
+    // 200 OK를 찾지 못한 경우 기존 로직 사용
+    if (json200) {
+      return json200;
+    }
+    
+    // 기존 로직: 단일 JSON 코드 블록
     const jsonMatch = docs.match(/```json\s*([\s\S]*?)\s*```/);
     if (jsonMatch && jsonMatch[1]) {
       return JSON.parse(jsonMatch[1].trim());
     }
-
+    
     // 일반 JSON 파싱 시도
     return JSON.parse(docs.trim());
   } catch (error) {

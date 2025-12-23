@@ -213,5 +213,62 @@ describe('변경사항 감지 테스트', () => {
   });
 });
 
+describe('새로운 폴더명 패턴 테스트', () => {
+  test('[한글명] 숫자 영문키 패턴 추출', () => {
+    const inputDir = join(FIXTURES_DIR, 'bruno');
+    const outputDir = join(TEST_OUTPUT_DIR, 'apis-pattern');
+
+    execSync(`node dist/cli/index.js generate-hooks -i ${inputDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // [어드민] 7 Admin 폴더가 생성되었는지 확인
+    const adminDir = join(outputDir, '7 Admin');
+    assert.ok(existsSync(adminDir), '[어드민] 7 Admin 폴더가 생성되어야 함');
+
+    // 훅 파일 생성 확인
+    const hookFile = join(adminDir, 'get-getList.ts');
+    assert.ok(existsSync(hookFile), 'getList 훅이 생성되어야 함');
+
+    console.log('✅ [한글명] 숫자 영문키 패턴 테스트 통과');
+  });
+});
+
+describe('상태 코드별 응답 파싱 테스트', () => {
+  test('200 OK만 추출 (404 무시)', () => {
+    const inputDir = join(FIXTURES_DIR, 'bruno');
+    const outputFile = join(TEST_OUTPUT_DIR, 'openapi-status-codes.json');
+
+    execSync(`node dist/cli/index.js generate -i ${inputDir} -o ${outputFile}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    const spec = JSON.parse(readFileSync(outputFile, 'utf-8'));
+
+    // /mentors 엔드포인트 확인
+    const mentorsPath = spec.paths['/mentors'];
+    assert.ok(mentorsPath, '/mentors 엔드포인트가 있어야 함');
+
+    // 200 응답만 있는지 확인 (404는 무시되어야 함)
+    const getMethod = mentorsPath.get;
+    assert.ok(getMethod, 'GET 메서드가 있어야 함');
+    assert.ok(getMethod.responses['200'], '200 응답이 있어야 함');
+    assert.ok(!getMethod.responses['404'], '404 응답은 포함되지 않아야 함');
+
+    // 200 응답의 스키마 확인
+    const response200 = getMethod.responses['200'];
+    assert.ok(response200.content, 'content가 있어야 함');
+    assert.ok(response200.content['application/json'], 'application/json이 있어야 함');
+    assert.ok(response200.content['application/json'].schema, 'schema가 있어야 함');
+
+    const schema = response200.content['application/json'].schema;
+    assert.ok(schema.properties, 'properties가 있어야 함');
+    assert.ok(schema.properties.nextPageNumber, 'nextPageNumber 필드가 있어야 함');
+    assert.ok(schema.properties.content, 'content 필드가 있어야 함');
+
+    console.log('✅ 상태 코드별 응답 파싱 테스트 통과');
+  });
+});
+
 console.log('\n🎉 모든 테스트 완료!');
 

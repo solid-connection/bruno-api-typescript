@@ -39,7 +39,7 @@ docs {
 
 **`docs` 블록이 전부입니다!** 이 블록의 JSON으로 타입과 스키마가 자동 생성됩니다.
 
-**올바른 예시:**
+**올바른 예시 (단일 응답):**
 
 `````bru
 docs {
@@ -58,6 +58,32 @@ docs {
   ````
 }
 `````
+
+**올바른 예시 (상태 코드별 응답):**
+
+여러 상태 코드를 정의할 수 있지만, **200 OK만 사용**됩니다:
+
+`````bru
+docs {
+  ## 200 OK
+  ```
+  {
+    "id": 1,
+    "username": "johndoe",
+    "email": "john@example.com"
+  }
+  ```
+  
+  ## 404 Not Found
+  ```
+  {
+    "message": "사용자를 찾을 수 없습니다."
+  }
+  ```
+}
+`````
+
+**참고**: 현재는 200 OK 응답만 타입 생성에 사용됩니다. 다른 상태 코드(404, 500 등)는 문서화 목적으로만 작성할 수 있습니다.
 
 ### 2. JSON 작성 규칙
 
@@ -120,15 +146,26 @@ docs {
 
 ```
 bruno/
-├── 지원서 [applications]/    # 한글명 [영문키] 형식
+├── [어드민] 7 Admin/          # [한글명] 숫자 영문키 형식 → 7 Admin
 │   ├── get-list.bru
 │   └── create.bru
-├── 사용자 [users]/
+├── 지원서 [applications]/    # 한글명 [영문키] 형식 → applications
+│   ├── get-list.bru
+│   └── create.bru
+├── 사용자 [users]/            # 한글명 [영문키] 형식 → users
 │   └── get-profile.bru
 └── bruno.json
 ```
 
-**폴더명 규칙**: `한글명 [EnglishKey]` 형식으로 작성하면, 대괄호 안의 `EnglishKey`만 사용됩니다.
+**폴더명 규칙**:
+
+1. **`[한글명] 숫자 영문키` 형식**: `[어드민] 7 Admin` → 생성 폴더: `7 Admin`
+   - 대괄호 뒤의 모든 내용(숫자 + 영문키)이 폴더명이 됩니다
+   - 예시: `[사용자] 8 Users` → `8 Users`
+
+2. **`한글명 [EnglishKey]` 형식**: `지원서 [applications]` → 생성 폴더: `applications`
+   - 대괄호 안의 `EnglishKey`만 사용됩니다
+   - 기존 방식과 호환됩니다
 
 ## 실전 예시
 
