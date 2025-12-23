@@ -63,7 +63,7 @@ docs {
 
 여러 상태 코드를 정의할 수 있지만, **200 OK만 사용**됩니다:
 
-`````bru
+````bru
 docs {
   ## 200 OK
   ```
@@ -73,7 +73,7 @@ docs {
     "email": "john@example.com"
   }
   ```
-  
+
   ## 404 Not Found
   ```
   {
@@ -81,7 +81,7 @@ docs {
   }
   ```
 }
-`````
+````
 
 **참고**: 현재는 200 OK 응답만 타입 생성에 사용됩니다. 다른 상태 코드(404, 500 등)는 문서화 목적으로만 작성할 수 있습니다.
 
@@ -160,12 +160,63 @@ bruno/
 **폴더명 규칙**:
 
 1. **`[한글명] 숫자 영문키` 형식**: `[어드민] 7 Admin` → 생성 폴더: `7 Admin`
+
    - 대괄호 뒤의 모든 내용(숫자 + 영문키)이 폴더명이 됩니다
    - 예시: `[사용자] 8 Users` → `8 Users`
 
 2. **`한글명 [EnglishKey]` 형식**: `지원서 [applications]` → 생성 폴더: `applications`
    - 대괄호 안의 `EnglishKey`만 사용됩니다
    - 기존 방식과 호환됩니다
+
+## 파일명 규칙
+
+**파일명이 쿼리 키와 훅 이름에 직접 사용됩니다!**
+
+### 권장 형식
+
+**✅ 올바른 예시:**
+```
+get-competitors.bru        → QueryKeys.applications.getCompetitors
+get-user-profile.bru       → QueryKeys.users.getUserProfile
+post-create-application.bru → QueryKeys.applications.postCreateApplication
+put-update-profile.bru     → QueryKeys.users.putUpdateProfile
+delete-user.bru            → QueryKeys.users.deleteUser
+```
+
+### 네이밍 규칙
+
+1. **kebab-case 사용** (하이픈으로 단어 구분)
+   - ✅ `get-user-profile.bru`
+   - ❌ `getUserProfile.bru` (camelCase)
+   - ❌ `get_user_profile.bru` (snake_case)
+   - ❌ `GetUserProfile.bru` (PascalCase)
+
+2. **HTTP 메서드로 시작** (선택사항이지만 권장)
+   - ✅ `get-list.bru`, `post-create.bru`, `put-update.bru`, `delete-item.bru`
+   - 이렇게 하면 쿼리 키가 `getList`, `postCreate` 등으로 생성되어 일관성 유지
+
+3. **명확하고 간결한 이름**
+   - ✅ `get-competitors.bru` (명확함)
+   - ✅ `create-application.bru` (명확함)
+   - ❌ `api1.bru` (불명확)
+   - ❌ `test.bru` (불명확)
+
+4. **한글 파일명 피하기**
+   - ❌ `멘토 목록 조회.bru` (쿼리 키 생성 시 문제 가능)
+   - ✅ `get-mentor-list.bru` (영문 사용)
+
+### 변환 규칙
+
+파일명은 자동으로 camelCase로 변환됩니다:
+
+| 파일명 | 쿼리 키 이름 | 훅 이름 |
+|--------|------------|--------|
+| `get-competitors.bru` | `getCompetitors` | `useGetCompetitors` |
+| `get-user-profile.bru` | `getUserProfile` | `useGetUserProfile` |
+| `post-create-application.bru` | `postCreateApplication` | `usePostCreateApplication` |
+| `멘토 목록 조회.bru` | `멘토목록조회` (문제 가능) | `use멘토목록조회` (문제 가능) |
+
+**핵심**: 파일명을 영문 kebab-case로 작성하면, 자동으로 일관된 쿼리 키와 훅 이름이 생성됩니다!
 
 ## 실전 예시
 
