@@ -157,16 +157,23 @@ jobs:
         run: |
           git clone https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository_owner }}/bruno-api.git /tmp/bruno
       
+      - name: Clone bruno-api-typescript
+        run: |
+          git clone https://github.com/solid-connection/bruno-api-typescript.git /tmp/bruno-api-typescript
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
       
-      - name: Install Dependencies
-        run: npm install
+      - name: Build bruno-api-typescript
+        working-directory: /tmp/bruno-api-typescript
+        run: |
+          npm install
+          npm run build
       
       - name: Generate Hooks
         run: |
-          npx bruno-api-typescript generate-hooks -i /tmp/bruno -o ./src/apis
+          node /tmp/bruno-api-typescript/dist/cli/index.js generate-hooks -i /tmp/bruno -o ./src/apis
       
       - name: Create PR
         uses: peter-evans/create-pull-request@v5
@@ -187,6 +194,7 @@ jobs:
 
 **수정 필요**:
 - `bruno-api`: 실제 Bruno 저장소 이름으로 변경
+- `bruno-api-typescript`: 실제 bruno-api-typescript 저장소 이름으로 변경 (기본값: `solid-connection/bruno-api-typescript`)
 
 ---
 
@@ -239,6 +247,14 @@ git push origin main
 **해결**:
 - Bruno 저장소에서 `.bru` 파일을 수정하고 푸시
 - Workflow 파일의 `paths` 필터 확인
+
+### 4. "npm error 404 Not Found - bruno-api-typescript" 에러
+
+**원인**: npm 패키지가 아니므로 `npx`로 실행 불가
+
+**해결**:
+- Workflow에서 저장소를 클론하고 빌드한 후 사용
+- 위의 Workflow 예시처럼 `git clone` → `npm install` → `npm run build` → `node dist/cli/index.js` 순서로 실행
 
 ---
 

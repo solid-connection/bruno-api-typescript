@@ -112,11 +112,9 @@ docs {
 
 ### 완성!
 
-첫 Bruno 파일 완성입니다. 터미널에서 실행해보세요:
+첫 Bruno 파일 완성입니다!
 
-```bash
-npx bruno-api generate -i ./bruno -o ./openapi.json
-```
+**참고**: 이 프로젝트는 GitHub Actions에서 자동으로 실행됩니다. 로컬에서 테스트하려면 저장소를 클론하고 빌드한 후 사용하세요.
 
 ---
 
