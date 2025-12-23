@@ -142,39 +142,56 @@ docs {
 }
 `````
 
-## 도메인별 폴더 구조
+## 파일명 및 폴더명 가이드라인
 
-```
-bruno/
-├── [어드민] 7 Admin/          # [한글명] 숫자 영문키 형식 → 7 Admin
-│   ├── get-list.bru
-│   └── create.bru
-├── 지원서 [applications]/    # 한글명 [영문키] 형식 → applications
-│   ├── get-list.bru
-│   └── create.bru
-├── 사용자 [users]/            # 한글명 [영문키] 형식 → users
-│   └── get-profile.bru
-└── bruno.json
-```
+파일명과 폴더명은 생성되는 코드의 구조와 이름에 직접 영향을 미칩니다. 일관된 네이밍을 위해 다음 규칙을 따르세요.
 
-**폴더명 규칙**:
+### 폴더명 규칙
 
-1. **`[한글명] 숫자 영문키` 형식**: `[어드민] 7 Admin` → 생성 폴더: `7 Admin`
+폴더명은 생성되는 도메인 디렉토리 이름이 됩니다.
 
+#### 지원하는 형식
+
+1. **`[한글명] 숫자 영문키` 형식** (권장)
+   ```
+   [어드민] 7 Admin/          → 생성 폴더: 7 Admin
+   [사용자] 8 Users/          → 생성 폴더: 8 Users
+   [멘토] 9 Mentor/           → 생성 폴더: 9 Mentor
+   ```
    - 대괄호 뒤의 모든 내용(숫자 + 영문키)이 폴더명이 됩니다
-   - 예시: `[사용자] 8 Users` → `8 Users`
+   - 한글명은 가독성을 위해 사용, 실제 폴더명에는 포함되지 않음
 
-2. **`한글명 [EnglishKey]` 형식**: `지원서 [applications]` → 생성 폴더: `applications`
+2. **`한글명 [EnglishKey]` 형식** (기존 방식, 호환)
+   ```
+   지원서 [applications]/    → 생성 폴더: applications
+   사용자 [users]/            → 생성 폴더: users
+   ```
    - 대괄호 안의 `EnglishKey`만 사용됩니다
-   - 기존 방식과 호환됩니다
+   - 기존 프로젝트와 호환됩니다
 
-## 파일명 규칙
+3. **영문 폴더명** (가장 단순)
+   ```
+   applications/              → 생성 폴더: applications
+   users/                     → 생성 폴더: users
+   ```
+   - 패턴이 없으면 폴더명 그대로 사용
+
+#### 폴더명 예시
+
+| Bruno 폴더명 | 생성되는 폴더 | 설명 |
+|-------------|--------------|------|
+| `[어드민] 7 Admin` | `7 Admin` | 숫자와 공백 포함 가능 |
+| `지원서 [applications]` | `applications` | 대괄호 안의 키만 사용 |
+| `users` | `users` | 그대로 사용 |
+
+### 파일명 규칙
 
 **파일명이 쿼리 키와 훅 이름에 직접 사용됩니다!**
 
-### 권장 형식
+#### 권장 형식
 
 **✅ 올바른 예시:**
+
 ```
 get-competitors.bru        → QueryKeys.applications.getCompetitors
 get-user-profile.bru       → QueryKeys.users.getUserProfile
@@ -183,19 +200,22 @@ put-update-profile.bru     → QueryKeys.users.putUpdateProfile
 delete-user.bru            → QueryKeys.users.deleteUser
 ```
 
-### 네이밍 규칙
+#### 네이밍 규칙
 
 1. **kebab-case 사용** (하이픈으로 단어 구분)
+
    - ✅ `get-user-profile.bru`
    - ❌ `getUserProfile.bru` (camelCase)
    - ❌ `get_user_profile.bru` (snake_case)
    - ❌ `GetUserProfile.bru` (PascalCase)
 
 2. **HTTP 메서드로 시작** (선택사항이지만 권장)
+
    - ✅ `get-list.bru`, `post-create.bru`, `put-update.bru`, `delete-item.bru`
    - 이렇게 하면 쿼리 키가 `getList`, `postCreate` 등으로 생성되어 일관성 유지
 
 3. **명확하고 간결한 이름**
+
    - ✅ `get-competitors.bru` (명확함)
    - ✅ `create-application.bru` (명확함)
    - ❌ `api1.bru` (불명확)
@@ -205,18 +225,53 @@ delete-user.bru            → QueryKeys.users.deleteUser
    - ❌ `멘토 목록 조회.bru` (쿼리 키 생성 시 문제 가능)
    - ✅ `get-mentor-list.bru` (영문 사용)
 
-### 변환 규칙
+#### 변환 규칙
 
 파일명은 자동으로 camelCase로 변환됩니다:
 
-| 파일명 | 쿼리 키 이름 | 훅 이름 |
-|--------|------------|--------|
-| `get-competitors.bru` | `getCompetitors` | `useGetCompetitors` |
-| `get-user-profile.bru` | `getUserProfile` | `useGetUserProfile` |
-| `post-create-application.bru` | `postCreateApplication` | `usePostCreateApplication` |
-| `멘토 목록 조회.bru` | `멘토목록조회` (문제 가능) | `use멘토목록조회` (문제 가능) |
+| 파일명                        | 쿼리 키 이름               | 훅 이름                       |
+| ----------------------------- | -------------------------- | ----------------------------- |
+| `get-competitors.bru`         | `getCompetitors`           | `useGetCompetitors`           |
+| `get-user-profile.bru`        | `getUserProfile`           | `useGetUserProfile`           |
+| `post-create-application.bru` | `postCreateApplication`    | `usePostCreateApplication`    |
+| `멘토 목록 조회.bru`          | `멘토목록조회` (문제 가능) | `use멘토목록조회` (문제 가능) |
 
 **핵심**: 파일명을 영문 kebab-case로 작성하면, 자동으로 일관된 쿼리 키와 훅 이름이 생성됩니다!
+
+### 전체 구조 예시
+
+```
+bruno/
+├── [어드민] 7 Admin/              # 폴더명: 7 Admin
+│   ├── get-list.bru               # → QueryKeys["7 Admin"].getList
+│   ├── post-create.bru           # → QueryKeys["7 Admin"].postCreate
+│   └── put-update.bru             # → QueryKeys["7 Admin"].putUpdate
+├── 지원서 [applications]/        # 폴더명: applications
+│   ├── get-competitors.bru        # → QueryKeys.applications.getCompetitors
+│   ├── get-details.bru            # → QueryKeys.applications.getDetails
+│   └── post-create.bru            # → QueryKeys.applications.postCreate
+├── 사용자 [users]/                # 폴더명: users
+│   ├── get-profile.bru            # → QueryKeys.users.getProfile
+│   └── put-update-profile.bru     # → QueryKeys.users.putUpdateProfile
+└── bruno.json
+```
+
+**생성되는 구조:**
+```
+src/apis/
+├── 7 Admin/
+│   ├── get-getList.ts
+│   ├── post-postCreate.ts
+│   └── index.ts
+├── applications/
+│   ├── get-getCompetitors.ts
+│   ├── get-getDetails.ts
+│   └── index.ts
+├── users/
+│   ├── get-getProfile.ts
+│   └── index.ts
+└── queryKeys.ts
+```
 
 ## 실전 예시
 
