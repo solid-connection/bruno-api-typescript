@@ -214,7 +214,7 @@ describe('변경사항 감지 테스트', () => {
 });
 
 describe('새로운 폴더명 패턴 테스트', () => {
-  test('[한글명] 숫자 영문키 패턴 추출', () => {
+  test('숫자) 한글명 [영문키] 패턴 추출', () => {
     const inputDir = join(FIXTURES_DIR, 'bruno');
     const outputDir = join(TEST_OUTPUT_DIR, 'apis-pattern');
 
@@ -222,18 +222,18 @@ describe('새로운 폴더명 패턴 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    // [어드민] 7 Admin 폴더가 생성되었는지 확인
-    const adminDir = join(outputDir, '7 Admin');
-    assert.ok(existsSync(adminDir), '[어드민] 7 Admin 폴더가 생성되어야 함');
+    // 7) 어드민 [Admin] → Admin 폴더가 생성되었는지 확인
+    const adminDir = join(outputDir, 'Admin');
+    assert.ok(existsSync(adminDir), '7) 어드민 [Admin] 폴더에서 Admin이 생성되어야 함');
 
     // 훅 파일 생성 확인
     const hookFile = join(adminDir, 'get-getList.ts');
     assert.ok(existsSync(hookFile), 'getList 훅이 생성되어야 함');
 
-    console.log('✅ [한글명] 숫자 영문키 패턴 테스트 통과');
+    console.log('✅ 숫자) 한글명 [영문키] 패턴 테스트 통과');
   });
 
-  test('[한국어 키] 영어 파일명 패턴 추출', () => {
+  test('한글명 [영문키] 파일명 패턴 추출', () => {
     const inputDir = join(FIXTURES_DIR, 'bruno');
     const outputDir = join(TEST_OUTPUT_DIR, 'apis-filename-pattern');
 
@@ -245,19 +245,19 @@ describe('새로운 폴더명 패턴 테스트', () => {
     const queryKeysFile = join(outputDir, 'queryKeys.ts');
     const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
 
-    // [목록 조회] get-list.bru → getList로 추출되어야 함
+    // 목록 조회 [get-list].bru → getList로 추출되어야 함
     assert.ok(queryKeysContent.includes('getList'), 'getList 쿼리 키가 생성되어야 함');
-    assert.ok(queryKeysContent.includes("'7 Admin.getList'"), '7 Admin.getList 쿼리 키가 생성되어야 함');
+    assert.ok(queryKeysContent.includes("'Admin.getList'"), 'Admin.getList 쿼리 키가 생성되어야 함');
 
     // 훅 파일 확인
-    const hookFile = join(outputDir, '7 Admin', 'get-getList.ts');
-    assert.ok(existsSync(hookFile), '[목록 조회] get-list.bru에서 getList 훅이 생성되어야 함');
+    const hookFile = join(outputDir, 'Admin', 'get-getList.ts');
+    assert.ok(existsSync(hookFile), '목록 조회 [get-list].bru에서 getList 훅이 생성되어야 함');
 
     const hookContent = readFileSync(hookFile, 'utf-8');
     assert.ok(hookContent.includes('getList'), '훅 내용에 getList가 포함되어야 함');
     assert.ok(hookContent.includes('useGetList'), 'useGetList 훅이 생성되어야 함');
 
-    console.log('✅ [한국어 키] 영어 파일명 패턴 테스트 통과');
+    console.log('✅ 한글명 [영문키] 파일명 패턴 테스트 통과');
   });
 });
 

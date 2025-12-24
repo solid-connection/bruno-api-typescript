@@ -190,18 +190,11 @@ function extractDomain(operation: any): string {
   if (operation.tags && operation.tags.length > 0) {
     const tag = operation.tags[0];
 
-    // [한글명] 숫자 영문키 패턴: [어드민] 7 Admin → 7 Admin
-    const bracketPattern = /^\[[^\]]+\]\s+(.+)$/;
+    // 대괄호 안의 영문키 추출: 1) 어드민 [Admin] → Admin, 사용자 [users] → users
+    const bracketPattern = /\[([^\]]+)\]/;
     const bracketMatch = tag.match(bracketPattern);
     if (bracketMatch) {
-      return bracketMatch[1].trim(); // 대괄호 뒤의 모든 내용
-    }
-
-    // 기존 패턴: 한글명 [EnglishKey] → EnglishKey
-    const oldPattern = /\[([^\]]+)\]/;
-    const oldMatch = tag.match(oldPattern);
-    if (oldMatch) {
-      return oldMatch[1];
+      return bracketMatch[1].trim(); // 대괄호 안의 영문키
     }
 
     return tag;
