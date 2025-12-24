@@ -334,28 +334,47 @@ docs {
 
 ---
 
-## 튜토리얼 5: 한글 폴더명 사용하기
+## 튜토리얼 5: 한글 폴더명 및 파일명 사용하기
 
 ### 한글 폴더명 지원
 
+**권장 형식: `숫자) 한글명 [영문키]`**
+
 ```bash
-mkdir "bruno/사용자 [users]"
-touch "bruno/사용자 [users]/get-profile.bru"
+mkdir "bruno/7) 어드민 [Admin]"
+touch "bruno/7) 어드민 [Admin]/목록 조회 [get-list].bru"
 ```
 
 **규칙**:
 
-- `한글명 [EnglishKey]` 형식
-- 대괄호 `[]` 안의 영문만 사용됨
+- `숫자) 한글명 [영문키]` 형식 (권장)
+- `한글명 [영문키]` 형식 (기존 호환)
+- 대괄호 `[]` 안의 영문키만 사용됨
 
 **예시**:
 
 ```
 bruno/
-├── 사용자 [users]/        → users로 인식
-├── 상품 [products]/      → products로 인식
-└── 주문 [orders]/         → orders로 인식
+├── 7) 어드민 [Admin]/        → Admin으로 인식
+├── 8) 사용자 [Users]/        → Users로 인식
+├── 지원서 [applications]/    → applications로 인식 (기존 방식)
+└── 상품 [products]/          → products로 인식 (기존 방식)
 ```
+
+### 한글 파일명 지원
+
+**권장 형식: `한글명 [영문키]`**
+
+```bash
+touch "bruno/7) 어드민 [Admin]/목록 조회 [get-list].bru"
+touch "bruno/7) 어드민 [Admin]/생성 [post-create].bru"
+```
+
+**규칙**:
+
+- `한글명 [영문키]` 형식
+- 대괄호 `[]` 안의 영문키만 사용됨
+- 예: `목록 조회 [get-list].bru` → `get-list` → `getList` (쿼리 키)
 
 ---
 
