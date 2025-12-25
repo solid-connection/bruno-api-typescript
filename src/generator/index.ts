@@ -10,6 +10,7 @@ import { extractApiFunction } from './apiClientGenerator';
 import { generateReactQueryHook } from './reactQueryGenerator';
 import { generateQueryKeyFile } from './queryKeyGenerator';
 import { generateMSWHandler, generateDomainHandlersIndex, generateMSWIndex } from './mswGenerator';
+import { generateApiFactory } from './apiFactoryGenerator';
 
 export interface GenerateHooksOptions {
   brunoDir: string;
@@ -110,8 +111,8 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
   writeFileSync(queryKeyPath, queryKeyContent, 'utf-8');
   console.log(`✅ Generated: ${queryKeyPath}`);
 
-  // 도메인별 훅 생성
-  console.log('\n🎣 Generating React Query hooks...');
+  // 도메인별로 API 함수 그룹화
+  const domainApiFunctions = new Map<string, Array<{ apiFunc: any; parsed: any }>>();
   const domainDirs = new Set<string>();
 
   for (const { filePath, parsed, domain } of parsedFiles) {
@@ -121,10 +122,42 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
       continue;
     }
 
+    // 도메인 디렉토리 생성
+    const domainDir = join(outputDir, domain);
+    if (!domainDirs.has(domainDir)) {
+      mkdirSync(domainDir, { recursive: true });
+      domainDirs.add(domainDir);
+    }
+
+    // 도메인별 API 함수 수집
+    if (!domainApiFunctions.has(domain)) {
+      domainApiFunctions.set(domain, []);
+    }
+    domainApiFunctions.get(domain)!.push({ apiFunc, parsed });
+  }
+
+  // 도메인별 API 팩토리 파일 생성
+  console.log('\n🏭 Generating API factories...');
+  for (const [domain, apiFunctions] of domainApiFunctions) {
+    const domainDir = join(outputDir, domain);
+    const factoryContent = generateApiFactory(apiFunctions, domain, axiosInstancePath);
+    const factoryPath = join(domainDir, 'api.ts');
+    writeFileSync(factoryPath, factoryContent, 'utf-8');
+    console.log(`✅ Generated: ${factoryPath}`);
+  }
+
+  // 도메인별 훅 생성
+  console.log('\n🎣 Generating React Query hooks...');
+  for (const { filePath, parsed, domain } of parsedFiles) {
+    const apiFunc = extractApiFunction(parsed, filePath);
+    if (!apiFunc) {
+      continue;
+    }
+
     // 훅 생성
     const hook = generateReactQueryHook(parsed, apiFunc, domain, axiosInstancePath);
 
-    // 도메인 디렉토리 생성
+    // 도메인 디렉토리 생성 (이미 생성되었지만 안전을 위해)
     const domainDir = join(outputDir, domain);
     if (!domainDirs.has(domainDir)) {
       mkdirSync(domainDir, { recursive: true });

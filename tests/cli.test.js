@@ -121,6 +121,12 @@ describe('React Query Hooks 생성 테스트', () => {
     assert.ok(existsSync(usersDir), 'users 디렉토리가 생성되어야 함');
     assert.ok(existsSync(applicationsDir), 'applications 디렉토리가 생성되어야 함');
 
+    // API 팩토리 파일 생성 확인
+    const usersApiFile = join(usersDir, 'api.ts');
+    const applicationsApiFile = join(applicationsDir, 'api.ts');
+    assert.ok(existsSync(usersApiFile), 'users/api.ts 팩토리 파일이 생성되어야 함');
+    assert.ok(existsSync(applicationsApiFile), 'applications/api.ts 팩토리 파일이 생성되어야 함');
+
     // 훅 파일 생성 확인
     const userProfileHook = join(usersDir, 'get-getProfile.ts');
     const competitorsHook = join(applicationsDir, 'get-getCompetitors.ts');
@@ -146,16 +152,43 @@ describe('React Query Hooks 생성 테스트', () => {
     assert.ok(content.includes('import { useQuery }'), 'useQuery import가 있어야 함');
     assert.ok(content.includes('import { AxiosError }'), 'AxiosError import가 있어야 함');
     assert.ok(content.includes('QueryKeys'), 'QueryKeys import가 있어야 함');
+    assert.ok(content.includes('from "./api"'), '팩토리 import가 있어야 함');
+    assert.ok(content.includes('usersApi'), 'usersApi 팩토리 import가 있어야 함');
 
     // 타입 정의 확인
-    assert.ok(content.includes('interface'), 'interface가 있어야 함');
     assert.ok(content.includes('export'), 'export가 있어야 함');
 
     // 함수 정의 확인
     assert.ok(content.includes('const use'), '훅 함수가 있어야 함');
     assert.ok(content.includes('export default'), 'default export가 있어야 함');
+    assert.ok(content.includes('usersApi.getProfile'), '팩토리 함수를 사용해야 함');
 
     console.log('✅ 훅 파일 내용 검증 테스트 통과');
+  });
+
+  test('API 팩토리 파일 내용 검증', () => {
+    const inputDir = join(FIXTURES_DIR, 'bruno');
+    const outputDir = join(TEST_OUTPUT_DIR, 'apis-factory');
+
+    execSync(`node dist/cli/index.js generate-hooks -i ${inputDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    const usersApiFile = join(outputDir, 'users', 'api.ts');
+    const content = readFileSync(usersApiFile, 'utf-8');
+
+    // 필수 import 확인
+    assert.ok(content.includes('import { axiosInstance }'), 'axiosInstance import가 있어야 함');
+
+    // 팩토리 객체 확인
+    assert.ok(content.includes('export const usersApi'), 'usersApi 팩토리 객체가 있어야 함');
+    assert.ok(content.includes('getProfile:'), 'getProfile 함수가 있어야 함');
+
+    // 함수 시그니처 확인
+    assert.ok(content.includes('async ('), 'async 함수가 있어야 함');
+    assert.ok(content.includes('Promise<'), 'Promise 타입이 있어야 함');
+
+    console.log('✅ API 팩토리 파일 내용 검증 테스트 통과');
   });
 
   test('index 파일 생성', () => {
