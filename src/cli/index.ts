@@ -116,10 +116,12 @@ program
   .option('-i, --input <path>', 'Bruno collection directory', './bruno')
   .option('-o, --output <path>', 'Output hooks directory', './src/apis')
   .option('--axios-path <path>', 'Axios instance import path', '@/utils/axiosInstance')
+  .option('--msw-output <path>', 'Output MSW handlers directory (optional)')
   .action(async (options) => {
     try {
       const inputDir = resolve(process.cwd(), options.input);
       const outputDir = resolve(process.cwd(), options.output);
+      const mswOutputDir = options.mswOutput ? resolve(process.cwd(), options.mswOutput) : undefined;
 
       // 입력 디렉토리 확인
       if (!existsSync(inputDir)) {
@@ -133,6 +135,7 @@ program
         brunoDir: inputDir,
         outputDir,
         axiosInstancePath: options.axiosPath,
+        mswOutputDir,
       });
 
       console.log('\n🎉 React Query hooks generated successfully!');

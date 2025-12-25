@@ -217,8 +217,8 @@ async function generateMSWHandlers(
   for (const { filePath, parsed, domain } of parsedFiles) {
     const handler = generateMSWHandler(parsed, filePath, domain);
 
+    // MSW 핸들러는 항상 생성 (docs 없어도 기본 응답 사용)
     if (!handler) {
-      // done: true 또는 docs 없음
       continue;
     }
 
@@ -276,6 +276,6 @@ async function generateMSWHandlers(
     console.log(`import { handlers } from './${relative(process.cwd(), mswIndexPath).replace('.ts', '')}';\n`);
     console.log(`const worker = setupWorker(...handlers);`);
   } else {
-    console.log(`ℹ️  No MSW handlers generated (all files have done: true or missing docs)`);
+    console.log(`ℹ️  No MSW handlers generated`);
   }
 }

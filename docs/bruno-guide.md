@@ -8,7 +8,6 @@
 meta {
   name: API 이름
   type: http
-  done: true  # 선택사항: 백엔드 완료시 MSW 생성 건너뛰기
 }
 
 get /api/endpoint
@@ -83,7 +82,51 @@ docs {
 }
 ````
 
-**참고**: 현재는 200 OK 응답만 타입 생성에 사용됩니다. 다른 상태 코드(404, 500 등)는 문서화 목적으로만 작성할 수 있습니다.
+**⚠️ 중요**: 현재는 **200 OK 응답만 타입 생성에 사용**됩니다. 다른 상태 코드(404, 500 등)는 문서화 목적으로만 작성할 수 있습니다.
+
+### 1-1. 200 OK 응답 필수 작성
+
+**200 OK 응답이 없으면 타입 생성이 실패합니다!**
+
+**❌ 잘못된 예시 (200 OK 없음):**
+
+````bru
+docs {
+  ## 404 Not Found
+  ```
+  {
+    "message": "사용자를 찾을 수 없습니다."
+  }
+  ```
+}
+````
+
+**✅ 올바른 예시:**
+
+````bru
+docs {
+  ## 200 OK
+  ```
+  {
+    "id": 1,
+    "username": "johndoe"
+  }
+  ```
+
+  ## 404 Not Found
+  ```
+  {
+    "message": "사용자를 찾을 수 없습니다."
+  }
+  ```
+}
+````
+
+**주의사항:**
+
+- 200 OK 응답이 여러 개 있으면 **첫 번째만** 사용됩니다
+- 200 OK 응답의 JSON이 실제 응답과 **정확히 일치**해야 합니다
+- 200 OK 응답이 없으면 단일 JSON 코드 블록을 찾지만, 그것도 없으면 타입 생성 실패
 
 ### 2. JSON 작성 규칙
 
@@ -119,7 +162,71 @@ docs {
 docs {
   ````json
   {
-    "users": []  // 타입 추론 불가
+    "users": []  // 타입 추론 불가 → any[]로 추론됨
+  }
+  ````
+}
+`````
+
+**⚠️ 주의**: 빈 배열은 `any[]`로 추론되므로, 최소 1개 요소를 포함해야 합니다.
+
+**❌ null 값으로 인한 타입 오류:**
+
+null 값이 있으면 해당 필드의 타입이 `null`로 고정되어 실제 사용 시 타입 오류가 발생할 수 있습니다.
+
+`````bru
+docs {
+  ````json
+  {
+    "optionalField": null  // null로 추론되어 타입이 null로 고정됨
+  }
+  ````
+}
+`````
+
+**✅ 올바른 예시 (옵셔널 필드 - 배열에서 유니온 타입 생성):**
+
+배열 응답에서 여러 아이템을 확인하여 유니온 타입을 자동 생성합니다:
+
+`````bru
+docs {
+  ````json
+  [
+    {
+      "status": "active",
+      "data": "hello",
+      "optionalField": "value"
+    },
+    {
+      "status": null,
+      "data": null,
+      "optionalField": null
+    }
+  ]
+  ````
+}
+`````
+
+**생성되는 타입:**
+
+```typescript
+export interface ResponseItem {
+  status: "active" | null;
+  data: "hello" | null;
+  optionalField: "value" | null;
+}
+```
+
+**✅ 단일 객체에서 옵셔널 필드:**
+
+단일 객체의 경우 null 값은 `null` 타입으로만 추론됩니다. 옵셔널 필드를 표현하려면 배열로 작성하세요:
+
+`````bru
+docs {
+  ````json
+  {
+    "requiredField": "value",
+    "optionalField": "example"  // 실제 값으로 작성
   }
   ````
 }
@@ -419,20 +526,43 @@ docs {
 
 ## MSW 생성 제어
 
-`meta.done: true`를 추가하면 MSW 핸들러 생성을 건너뜁니다.
+MSW 핸들러는 모든 API에 대해 생성되며, **프론트엔드에서 플래그로 활성/비활성을 제어**합니다.
 
-```bru
-meta {
-  name: Get User Profile
-  type: http
-  done: true  # 백엔드 완료, MSW 불필요
-}
+### 프론트엔드에서 MSW 제어
+
+생성된 `handlers.ts` 파일에서 환경 변수나 설정으로 제어할 수 있습니다:
+
+**예시 1: 환경 변수로 제어**
+
+```typescript
+// src/mocks/handlers.ts
+import { authHandlers } from "./Auth";
+import { usersHandlers } from "./Users";
+
+const ENABLE_MSW = process.env.NEXT_PUBLIC_ENABLE_MSW === "true";
+
+export const handlers = ENABLE_MSW ? [...authHandlers, ...usersHandlers] : [];
 ```
 
-**언제 사용하나요?**
+**예시 2: 특정 도메인만 활성화**
 
-- ✅ 백엔드 API 완료 → `done: true`
-- ❌ 백엔드 API 개발 중 → `done` 생략 (MSW 생성)
+```typescript
+export const handlers = [
+  ...authHandlers, // Auth 도메인만 활성화
+  // ...usersHandlers,  // Users 도메인 비활성화
+];
+```
+
+**예시 3: 조건부 필터링**
+
+```typescript
+const enabledDomains = ["Auth", "Users"]; // 활성화할 도메인 목록
+
+export const handlers = [
+  ...(enabledDomains.includes("Auth") ? authHandlers : []),
+  ...(enabledDomains.includes("Users") ? usersHandlers : []),
+];
+```
 
 ## 체크리스트
 

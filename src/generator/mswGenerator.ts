@@ -13,31 +13,37 @@ export interface MSWHandler {
 
 /**
  * MSW 핸들러 생성
- * meta.done이 true이면 null 반환
+ * 모든 API에 대해 MSW 핸들러 생성 (프론트엔드에서 플래그로 제어)
+ * docs가 없어도 기본 응답으로 생성 (테스트 용)
  */
 export function generateMSWHandler(
   parsed: ParsedBrunoFile,
   filePath: string,
   domain: string
 ): MSWHandler | null {
-  // done 필드가 true이면 MSW 생성하지 않음
-  if (parsed.meta.done === true) {
-    return null;
-  }
-
-  // docs 블록에서 JSON 추출
-  if (!parsed.docs) {
-    console.warn(`⚠️  No docs block in ${filePath}, skipping MSW generation`);
-    return null;
-  }
-
-  const responseJson = extractJsonFromDocs(parsed.docs);
-  if (!responseJson) {
-    console.warn(`⚠️  Invalid JSON in docs block in ${filePath}, skipping MSW generation`);
-    return null;
-  }
-
   const { method, url } = parsed.http;
+  
+  // docs 블록에서 JSON 추출
+  let responseJson: any = null;
+  
+  if (parsed.docs) {
+    responseJson = extractJsonFromDocs(parsed.docs);
+  }
+  
+  // docs가 없거나 유효하지 않으면 기본 응답 사용
+  if (!responseJson) {
+    // 기본 응답 생성 (테스트 용)
+    if (method === 'GET') {
+      responseJson = { message: 'Mock response', data: null };
+    } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
+      responseJson = { message: 'Success', id: 1 };
+    } else if (method === 'DELETE') {
+      responseJson = { message: 'Deleted successfully' };
+    } else {
+      responseJson = { message: 'Mock response' };
+    }
+  }
+
   const handlerName = generateHandlerName(method, url);
 
   // MSW 핸들러 코드 생성
@@ -147,6 +153,26 @@ export function generateMSWIndex(domains: string[]): string {
 /**
  * All MSW handlers
  * Auto-generated from Bruno files
+ * 
+ * 프론트엔드에서 플래그로 활성/비활성 제어:
+ * 
+ * 예시 1: 환경 변수로 제어
+ * const ENABLE_MSW = process.env.NEXT_PUBLIC_ENABLE_MSW === 'true';
+ * export const handlers = ENABLE_MSW ? [
+ *   ${exportArray}
+ * ] : [];
+ * 
+ * 예시 2: 특정 도메인만 활성화
+ * export const handlers = [
+ *   ...authHandlers,  // Auth 도메인만 활성화
+ *   // ...usersHandlers,  // Users 도메인 비활성화
+ * ];
+ * 
+ * 예시 3: 조건부 필터링
+ * const enabledDomains = ['Auth', 'Users']; // 활성화할 도메인 목록
+ * export const handlers = [
+ *   ${domains.map(d => `...(enabledDomains.includes('${d}') ? ${d}Handlers : [])`).join(',\n  ')}
+ * ];
  */
 export const handlers = [
 ${exportArray}

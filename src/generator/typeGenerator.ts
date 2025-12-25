@@ -74,7 +74,28 @@ export function generateTypeScriptInterface(
   // 메인 인터페이스 생성
   const properties: string[] = [];
   for (const [key, value] of Object.entries(json)) {
-    const type = getPropertyType(value, toPascalCase(key));
+    let type = getPropertyType(value, toPascalCase(key));
+    
+    // 배열인 경우 유니온 타입 확인
+    if (Array.isArray(value) && value.length > 0) {
+      const types = new Set<string>();
+      for (const item of value) {
+        if (item === null || item === undefined) {
+          types.add('null');
+        } else {
+          const itemType = getPropertyType(item, toPascalCase(key));
+          types.add(itemType);
+        }
+      }
+      const typeArray = Array.from(types);
+      if (typeArray.length > 1) {
+        type = `(${typeArray.join(' | ')})[]`;
+      }
+    } else if (value === null || value === undefined) {
+      // 단일 null 값은 그대로 유지 (유니온 타입 생성 불가)
+      type = 'null';
+    }
+    
     properties.push(`  ${key}: ${type};`);
   }
 
@@ -94,16 +115,44 @@ function extractNestedTypes(
 ): void {
   if (Array.isArray(value) && value.length > 0) {
     const itemType = value[0];
-    if (typeof itemType === 'object' && !Array.isArray(itemType)) {
+    if (typeof itemType === 'object' && !Array.isArray(itemType) && itemType !== null) {
       const itemTypeName = `${typeName}Item`;
       const properties: string[] = [];
 
-      for (const [key, val] of Object.entries(itemType)) {
-        const propType = getPropertyType(val, toPascalCase(key));
+      // 배열의 모든 아이템을 확인하여 각 필드의 타입 수집
+      const fieldTypes = new Map<string, Set<string>>();
+      
+      // 모든 아이템을 순회하며 각 필드의 타입 수집
+      for (const item of value) {
+        if (typeof item === 'object' && !Array.isArray(item) && item !== null) {
+          for (const [key, val] of Object.entries(item)) {
+            if (!fieldTypes.has(key)) {
+              fieldTypes.set(key, new Set());
+            }
+            const typeSet = fieldTypes.get(key)!;
+            
+            if (val === null || val === undefined) {
+              typeSet.add('null');
+            } else {
+              const propType = getPropertyType(val, toPascalCase(key));
+              typeSet.add(propType);
+            }
+          }
+        }
+      }
+
+      // 유니온 타입 생성
+      for (const [key, typeSet] of fieldTypes) {
+        const types = Array.from(typeSet);
+        const propType = types.length === 1 
+          ? types[0] 
+          : types.join(' | ');
         properties.push(`  ${key}: ${propType};`);
 
-        // 재귀적으로 중첩된 타입 추출
-        extractNestedTypes(val, toPascalCase(key), definitions);
+        // 재귀적으로 중첩된 타입 추출 (첫 번째 아이템 사용)
+        if (itemType[key] !== null && itemType[key] !== undefined) {
+          extractNestedTypes(itemType[key], toPascalCase(key), definitions);
+        }
       }
 
       const interfaceContent = `export interface ${itemTypeName} {\n${properties.join('\n')}\n}`;
@@ -129,10 +178,23 @@ function getPropertyType(value: any, typeName: string): string {
       return 'any[]';
     }
     const itemType = value[0];
-    if (typeof itemType === 'object' && !Array.isArray(itemType)) {
+    if (typeof itemType === 'object' && !Array.isArray(itemType) && itemType !== null) {
       return `${typeName}Item[]`;
     }
-    return `${getPropertyType(itemType, typeName)}[]`;
+    // 배열의 모든 아이템을 확인하여 유니온 타입 생성
+    const types = new Set<string>();
+    for (const item of value) {
+      if (item === null || item === undefined) {
+        types.add('null');
+      } else {
+        types.add(getPropertyType(item, typeName));
+      }
+    }
+    const typeArray = Array.from(types);
+    if (typeArray.length === 1) {
+      return `${typeArray[0]}[]`;
+    }
+    return `(${typeArray.join(' | ')})[]`;
   }
 
   const valueType = typeof value;
