@@ -297,5 +297,128 @@ describe('상태 코드별 응답 파싱 테스트', () => {
   });
 });
 
+describe('컬렉션 폴더 지원 테스트', () => {
+  test('Solid Connection 폴더 제거 및 도메인 추출', () => {
+    // Solid Connection 폴더 구조 fixture 생성
+    const collectionFixtureDir = join(TEST_OUTPUT_DIR, 'collection-fixture');
+    const collectionDir = join(collectionFixtureDir, 'Solid Connection', '1) 인증 [Auth]');
+    mkdirSync(collectionDir, { recursive: true });
+    
+    // 테스트용 .bru 파일 생성
+    const testFile = join(collectionDir, 'sign-out.bru');
+    const bruContent = `meta {
+  name: Sign Out
+  type: http
+}
+
+post /auth/sign-out
+`;
+    require('fs').writeFileSync(testFile, bruContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'collection-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${collectionFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // Auth 도메인 디렉토리 생성 확인 (Solid Connection 제거)
+    const authDir = join(outputDir, 'Auth');
+    assert.ok(existsSync(authDir), 'Auth 디렉토리가 생성되어야 함 (Solid Connection 폴더 제거)');
+
+    // queryKeys.ts에서 Auth 도메인 확인
+    const queryKeysFile = join(outputDir, 'queryKeys.ts');
+    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
+    assert.ok(queryKeysContent.includes('Auth'), 'Auth 도메인이 queryKeys에 있어야 함');
+
+    // 생성된 파일 확인
+    const signOutHook = join(authDir, 'post-signOut.ts');
+    assert.ok(existsSync(signOutHook), 'post-signOut.ts 파일이 생성되어야 함');
+
+    // 함수명에 메서드 prefix 포함 확인
+    const signOutHookContent = readFileSync(signOutHook, 'utf-8');
+    assert.ok(signOutHookContent.includes('postSignOut'), 'postSignOut 함수가 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(signOutHookContent.includes('usePostSignOut'), 'usePostSignOut 훅이 생성되어야 함 (메서드 prefix 포함)');
+
+    console.log('✅ Solid Connection 폴더 제거 및 도메인 추출 테스트 통과');
+  });
+});
+
+describe('파일명 규칙 테스트', () => {
+  test('메서드 prefix 없는 파일명 정상 동작 및 함수명에 메서드 prefix 포함', () => {
+    // 메서드 prefix가 없는 파일 fixture 생성 (권장 방식)
+    const noPrefixFixtureDir = join(TEST_OUTPUT_DIR, 'no-prefix-fixture');
+    const usersDir = join(noPrefixFixtureDir, 'users');
+    mkdirSync(usersDir, { recursive: true });
+    
+    // account.bru 파일 생성 (DELETE 메서드)
+    const accountFile = join(usersDir, 'account.bru');
+    const accountContent = `meta {
+  name: Delete Account
+  type: http
+}
+
+delete /users/account
+`;
+    require('fs').writeFileSync(accountFile, accountContent);
+
+    // sign-up.bru 파일 생성 (POST 메서드)
+    const signUpFile = join(usersDir, 'sign-up.bru');
+    const signUpContent = `meta {
+  name: Sign Up
+  type: http
+}
+
+post /users/sign-up
+
+body:json {
+  {
+    "email": "test@example.com",
+    "password": "password123"
+  }
+}
+
+docs {
+  \`\`\`json
+  {
+    "id": 1,
+    "email": "test@example.com",
+    "createdAt": "2025-01-01T00:00:00Z"
+  }
+  \`\`\`
+}
+`;
+    require('fs').writeFileSync(signUpFile, signUpContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'no-prefix-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${noPrefixFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // queryKeys.ts 확인
+    const queryKeysFile = join(outputDir, 'queryKeys.ts');
+    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
+    assert.ok(queryKeysContent.includes('account'), 'account 쿼리 키가 생성되어야 함');
+    assert.ok(queryKeysContent.includes('signUp'), 'signUp 쿼리 키가 생성되어야 함');
+
+    // 생성된 파일명 확인
+    const accountHook = join(outputDir, 'users', 'delete-account.ts');
+    const signUpHook = join(outputDir, 'users', 'post-signUp.ts');
+    assert.ok(existsSync(accountHook), 'delete-account.ts 파일이 생성되어야 함');
+    assert.ok(existsSync(signUpHook), 'post-signUp.ts 파일이 생성되어야 함');
+
+    // 함수명에 메서드 prefix 포함 확인
+    const accountHookContent = readFileSync(accountHook, 'utf-8');
+    assert.ok(accountHookContent.includes('deleteAccount'), 'deleteAccount 함수가 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(accountHookContent.includes('useDeleteAccount'), 'useDeleteAccount 훅이 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(!accountHookContent.includes('account('), 'account 함수는 생성되지 않아야 함 (메서드 prefix 없음)');
+
+    const signUpHookContent = readFileSync(signUpHook, 'utf-8');
+    assert.ok(signUpHookContent.includes('postSignUp'), 'postSignUp 함수가 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(signUpHookContent.includes('usePostSignUp'), 'usePostSignUp 훅이 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(!signUpHookContent.includes('signUp('), 'signUp 함수는 생성되지 않아야 함 (메서드 prefix 없음)');
+
+    console.log('✅ 메서드 prefix 없는 파일명 및 함수명 메서드 prefix 포함 테스트 통과');
+  });
+});
+
 console.log('\n🎉 모든 테스트 완료!');
 

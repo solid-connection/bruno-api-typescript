@@ -45,22 +45,28 @@ function findBrunoFiles(dir: string): string[] {
 
 /**
  * 파일 경로에서 도메인 추출
+ * - "Solid Connection" 최상단 폴더를 제거하고 대괄호 패턴이 있는 첫 번째 폴더를 도메인으로 인식
  * - "숫자) 한글명 [영문키]" 형식: 1) 어드민 [Admin] → Admin
  * - "한글명 [영문키]" 형식: 사용자 [users] → users
  */
 function extractDomain(filePath: string, brunoDir: string): string {
   const relativePath = relative(brunoDir, filePath);
   const parts = relativePath.split('/');
-  const folderName = parts[0]; // 첫 번째 폴더가 도메인
-
-  // 대괄호 안의 영문키 추출: 1) 어드민 [Admin] → Admin, 사용자 [users] → users
+  
+  // "Solid Connection" 폴더 제거
+  const filteredParts = parts.filter(part => part !== 'Solid Connection');
+  
+  // 대괄호 패턴이 있는 첫 번째 폴더 찾기
   const bracketPattern = /\[([^\]]+)\]/;
-  const bracketMatch = folderName.match(bracketPattern);
-  if (bracketMatch) {
-    return bracketMatch[1].trim(); // 대괄호 안의 영문키
+  for (const part of filteredParts) {
+    const bracketMatch = part.match(bracketPattern);
+    if (bracketMatch) {
+      return bracketMatch[1].trim(); // 대괄호 안의 영문키
+    }
   }
-
-  return folderName; // 패턴이 없으면 폴더명 그대로 반환
+  
+  // 패턴이 없으면 파일이 있는 폴더명 사용 (마지막에서 두 번째)
+  return filteredParts[filteredParts.length - 2] || filteredParts[0] || 'default';
 }
 
 /**

@@ -27,8 +27,10 @@ mkdir -p bruno/products
 ### 단계 1: 파일 생성
 
 ```bash
-touch bruno/users/get-profile.bru
+touch bruno/users/profile.bru
 ```
+
+> ⚠️ **주의**: 파일명에 HTTP 메서드(`get-`, `post-` 등)를 포함하지 마세요. 메서드는 파일 내부에서 정의됩니다.
 
 ### 단계 2: meta 블록 작성
 
@@ -235,8 +237,10 @@ POST 요청이 완성되었습니다.
 ### 단계 1: 파일 생성
 
 ```bash
-touch bruno/products/get-product.bru
+touch bruno/products/product.bru
 ```
+
+> ⚠️ **주의**: 파일명에 HTTP 메서드를 포함하지 마세요.
 
 ### 단계 2: Path Parameter 포함 경로 작성
 
@@ -342,7 +346,7 @@ docs {
 
 ```bash
 mkdir "bruno/7) 어드민 [Admin]"
-touch "bruno/7) 어드민 [Admin]/목록 조회 [get-list].bru"
+touch "bruno/7) 어드민 [Admin]/목록 조회 [list].bru"
 ```
 
 **규칙**:
@@ -365,16 +369,20 @@ bruno/
 
 **권장 형식: `한글명 [영문키]`**
 
+> ⚠️ **중요**: 파일명에 **HTTP 메서드를 포함하지 마세요**. 메서드는 `.bru` 파일 내부에서 자동으로 인식됩니다.
+
 ```bash
-touch "bruno/7) 어드민 [Admin]/목록 조회 [get-list].bru"
-touch "bruno/7) 어드민 [Admin]/생성 [post-create].bru"
+touch "bruno/7) 어드민 [Admin]/목록 조회 [list].bru"
+touch "bruno/7) 어드민 [Admin]/생성 [create].bru"
 ```
 
 **규칙**:
 
 - `한글명 [영문키]` 형식
 - 대괄호 `[]` 안의 영문키만 사용됨
-- 예: `목록 조회 [get-list].bru` → `get-list` → `getList` (쿼리 키)
+- **HTTP 메서드 prefix는 포함하지 않음** (예: `get-`, `post-` 등)
+- 예: `목록 조회 [list].bru` → `list` → `list` → `get-list.ts` (GET 메서드인 경우)
+- 예: `생성 [create].bru` → `create` → `create` → `post-create.ts` (POST 메서드인 경우)
 
 ---
 

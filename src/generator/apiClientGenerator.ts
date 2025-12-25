@@ -30,15 +30,18 @@ export function extractApiFunction(parsed: ParsedBrunoFile, filePath: string): A
   // .bru 파일명에서 함수명 생성
   let fileName = filePath.split('/').pop()?.replace('.bru', '') || '';
   
-  // 한글명 [영문키] 패턴 추출: 멘토 목록 조회 [get-mentor-list] → get-mentor-list
+  // 한글명 [영문키] 패턴 추출: 멘토 목록 조회 [mentor-list] → mentor-list
   const bracketPattern = /\[([^\]]+)\]/;
   const bracketMatch = fileName.match(bracketPattern);
   if (bracketMatch) {
     fileName = bracketMatch[1].trim(); // 대괄호 안의 영문키만 사용
   }
   
-  const functionName = toCamelCase(fileName);
-  const responseType = functionNameToTypeName(functionName);
+  const baseFunctionName = toCamelCase(fileName);
+  // HTTP 메서드 prefix 추가: signOut → postSignOut
+  const methodPrefix = http.method.toLowerCase();
+  const functionName = `${methodPrefix}${baseFunctionName.charAt(0).toUpperCase()}${baseFunctionName.slice(1)}`;
+  const responseType = functionNameToTypeName(baseFunctionName);
 
   // URL에 파라미터가 있는지 확인
   const hasParams = http.url.includes(':') || http.url.includes('{');

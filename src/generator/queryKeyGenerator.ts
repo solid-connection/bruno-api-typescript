@@ -37,7 +37,7 @@ export function generateQueryKeyStructure(
 
     let fileName = path.split('/').pop()?.replace('.bru', '') || '';
 
-    // 한글명 [영문키] 패턴 추출: 멘토 목록 조회 [get-mentor-list] → get-mentor-list
+    // 한글명 [영문키] 패턴 추출: 멘토 목록 조회 [mentor-list] → mentor-list
     const bracketPattern = /\[([^\]]+)\]/;
     const bracketMatch = fileName.match(bracketPattern);
     if (bracketMatch) {
