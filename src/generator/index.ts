@@ -3,7 +3,7 @@
  * Bruno 파일들을 읽어서 React Query 훅들을 생성
  */
 
-import { readdirSync, statSync, mkdirSync, writeFileSync } from 'fs';
+import { readdirSync, statSync, mkdirSync, writeFileSync, existsSync, copyFileSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import { parseBrunoFile } from '../parser/bruParser';
 import { extractApiFunction } from './apiClientGenerator';
@@ -11,6 +11,7 @@ import { generateReactQueryHook } from './reactQueryGenerator';
 import { generateQueryKeyFile } from './queryKeyGenerator';
 import { generateMSWHandler, generateDomainHandlersIndex, generateMSWIndex } from './mswGenerator';
 import { generateApiFactory } from './apiFactoryGenerator';
+import { detectHookChanges, generateChangeReport } from './hookChangeDetector';
 
 export interface GenerateHooksOptions {
   brunoDir: string;
@@ -164,8 +165,34 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
       domainDirs.add(domainDir);
     }
 
-    // 훅 파일 작성
+    // 훅 파일 작성 전 기존 파일 확인
     const hookPath = join(domainDir, hook.fileName);
+    
+    if (existsSync(hookPath)) {
+      // legacy 폴더 생성
+      const legacyDir = join(domainDir, 'legacy');
+      mkdirSync(legacyDir, { recursive: true });
+      
+      // 기존 파일을 legacy 폴더로 이동
+      const legacyPath = join(legacyDir, hook.fileName);
+      copyFileSync(hookPath, legacyPath);
+      
+      // 변경사항 감지
+      const changes = detectHookChanges(parsed, apiFunc, legacyPath, domain);
+      
+      // 변경사항 리포트 생성
+      if (changes.length > 0) {
+        const changeReport = generateChangeReport(hook.fileName, changes, apiFunc, parsed);
+        const changeReportPath = join(legacyDir, `${hook.fileName.replace('.ts', '')}.CHANGES.md`);
+        writeFileSync(changeReportPath, changeReport, 'utf-8');
+        console.log(`⚠️  Existing hook moved to legacy: ${legacyPath}`);
+        console.log(`📝 Change report: ${changeReportPath}`);
+      } else {
+        console.log(`ℹ️  Existing hook moved to legacy (no changes detected): ${legacyPath}`);
+      }
+    }
+    
+    // 새 훅 파일 생성
     writeFileSync(hookPath, hook.content, 'utf-8');
     console.log(`✅ Generated: ${hookPath}`);
   }

@@ -102,7 +102,8 @@ export function generateApiFactory(
         }
       }
     } else {
-      const defaultType = `export interface ${responseType} {\n  // TODO: Define response type\n}`;
+      // Response가 없으면 void 타입 사용
+      const defaultType = `export type ${responseType} = void;`;
       if (!typeDefinitions.has(defaultType)) {
         typeDefinitions.add(defaultType);
         lines.push(defaultType);
@@ -124,7 +125,8 @@ export function generateApiFactory(
             }
           }
         } catch {
-          const defaultRequestType = `export interface ${requestType} {\n  // TODO: Define request type\n}`;
+          // Request body 파싱 실패시 Record<string, never> 사용
+          const defaultRequestType = `export type ${requestType} = Record<string, never>;`;
           if (!typeDefinitions.has(defaultRequestType)) {
             typeDefinitions.add(defaultRequestType);
             lines.push(defaultRequestType);
@@ -132,7 +134,8 @@ export function generateApiFactory(
           }
         }
       } else {
-        const defaultRequestType = `export interface ${requestType} {\n  // TODO: Define request type\n}`;
+        // Request body가 없으면 Record<string, never> 사용
+        const defaultRequestType = `export type ${requestType} = Record<string, never>;`;
         if (!typeDefinitions.has(defaultRequestType)) {
           typeDefinitions.add(defaultRequestType);
           lines.push(defaultRequestType);

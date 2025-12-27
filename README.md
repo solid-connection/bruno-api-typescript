@@ -95,6 +95,7 @@ docs {
 - **[GitHub Apps 설정 가이드](./docs/github-apps-simple.md)** - Workflow 파일 예시 포함
 - **[Bruno 파일 작성 튜토리얼](./docs/bruno-tutorial.md)** - 단계별 따라하기
 - **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 상세 레퍼런스
+- **[변경사항 처리 가이드](./docs/migration-guide.md)** - React Query 훅 변경사항 처리 방법
 
 ## 라이선스
 
