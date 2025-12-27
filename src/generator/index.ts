@@ -57,14 +57,14 @@ function extractDomain(filePath: string, brunoDir: string): string {
   
   // "Solid Connection" 폴더 제거
   const filteredParts = parts.filter(part => part !== 'Solid Connection');
-  
+
   // 대괄호 패턴이 있는 첫 번째 폴더 찾기
   const bracketPattern = /\[([^\]]+)\]/;
   for (const part of filteredParts) {
     const bracketMatch = part.match(bracketPattern);
     if (bracketMatch) {
       return bracketMatch[1].trim(); // 대괄호 안의 영문키
-    }
+  }
   }
   
   // 패턴이 없으면 파일이 있는 폴더명 사용 (마지막에서 두 번째)

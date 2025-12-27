@@ -22,7 +22,7 @@ export function generateMSWHandler(
   domain: string
 ): MSWHandler | null {
   const { method, url } = parsed.http;
-  
+
   // docs 블록에서 JSON 추출
   let responseJson: any = null;
   

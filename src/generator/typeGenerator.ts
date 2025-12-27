@@ -68,13 +68,13 @@ export function generateTypeScriptInterface(
 ): TypeDefinition[] {
   const definitions: TypeDefinition[] = [];
 
-  // 중첩된 배열 타입 추출
-  extractNestedTypes(json, interfaceName, definitions);
+  // 중첩된 타입 추출 (메인 타입 제외)
+  extractNestedTypes(json, '', definitions, interfaceName, true);
 
   // 메인 인터페이스 생성
   const properties: string[] = [];
   for (const [key, value] of Object.entries(json)) {
-    let type = getPropertyType(value, toPascalCase(key));
+    let type = getPropertyType(value, toPascalCase(key), interfaceName);
     
     // 배열인 경우 유니온 타입 확인
     if (Array.isArray(value) && value.length > 0) {
@@ -83,7 +83,7 @@ export function generateTypeScriptInterface(
         if (item === null || item === undefined) {
           types.add('null');
         } else {
-          const itemType = getPropertyType(item, toPascalCase(key));
+          const itemType = getPropertyType(item, toPascalCase(key), `${interfaceName}${toPascalCase(key)}Item`);
           types.add(itemType);
         }
       }
@@ -117,12 +117,17 @@ export function generateTypeScriptInterface(
 function extractNestedTypes(
   value: any,
   typeName: string,
-  definitions: TypeDefinition[]
+  definitions: TypeDefinition[],
+  parentTypeName?: string,
+  isRoot: boolean = false
 ): void {
   if (Array.isArray(value) && value.length > 0) {
     const itemType = value[0];
     if (typeof itemType === 'object' && !Array.isArray(itemType) && itemType !== null) {
-      const itemTypeName = `${typeName}Item`;
+      // 부모 타입 이름을 포함하여 고유한 타입 이름 생성
+      const itemTypeName = parentTypeName 
+        ? `${parentTypeName}${typeName}Item`
+        : `${typeName}Item`;
       const properties: string[] = [];
 
       // 배열의 모든 아이템을 확인하여 각 필드의 타입 수집
@@ -140,14 +145,18 @@ function extractNestedTypes(
             if (val === null || val === undefined) {
               typeSet.add('null');
             } else {
-              const propType = getPropertyType(val, toPascalCase(key));
+              // 중첩된 객체인 경우 부모 타입 이름 포함 (중복 방지)
+              const propTypeName = typeof val === 'object' && !Array.isArray(val) && val !== null
+                ? `${itemTypeName}${toPascalCase(key)}`
+                : toPascalCase(key);
+              const propType = getPropertyType(val, toPascalCase(key), itemTypeName);
               typeSet.add(propType);
             }
           }
         }
       }
 
-      // 유니온 타입 생성
+      // 유니온 타입 생성 및 중첩 타입 추출
       for (const [key, typeSet] of fieldTypes) {
         const types = Array.from(typeSet);
         const propType = types.length === 1 
@@ -155,9 +164,11 @@ function extractNestedTypes(
           : types.join(' | ');
         properties.push(`  ${key}: ${propType};`);
 
-        // 재귀적으로 중첩된 타입 추출 (첫 번째 아이템 사용)
-        if (itemType[key] !== null && itemType[key] !== undefined) {
-          extractNestedTypes(itemType[key], toPascalCase(key), definitions);
+        // 재귀적으로 중첩된 타입 추출
+        const val = itemType[key];
+        if (val !== null && val !== undefined) {
+          const nestedTypeName = `${itemTypeName}${toPascalCase(key)}`;
+          extractNestedTypes(val, toPascalCase(key), definitions, itemTypeName);
         }
       }
 
@@ -165,8 +176,53 @@ function extractNestedTypes(
       definitions.unshift({ name: itemTypeName, content: interfaceContent });
     }
   } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    for (const [key, val] of Object.entries(value)) {
-      extractNestedTypes(val, toPascalCase(key), definitions);
+    // 루트 레벨이 아니고 부모 타입 이름이 있는 경우에만 타입 정의 생성
+    if (!isRoot && parentTypeName && typeName) {
+      const nestedTypeName = `${parentTypeName}${typeName}`;
+      const properties: string[] = [];
+      const fieldTypes = new Map<string, Set<string>>();
+      
+      // 모든 필드의 타입 수집
+      for (const [key, val] of Object.entries(value)) {
+        if (!fieldTypes.has(key)) {
+          fieldTypes.set(key, new Set());
+        }
+        const typeSet = fieldTypes.get(key)!;
+        
+        if (val === null || val === undefined) {
+          typeSet.add('null');
+        } else {
+          const propType = getPropertyType(val, toPascalCase(key), nestedTypeName);
+          typeSet.add(propType);
+        }
+      }
+      
+      // 유니온 타입 생성
+      for (const [key, typeSet] of fieldTypes) {
+        const types = Array.from(typeSet);
+        const propType = types.length === 1 
+          ? types[0] 
+          : types.join(' | ');
+        properties.push(`  ${key}: ${propType};`);
+        
+        // 재귀적으로 중첩된 타입 추출
+        const val = value[key];
+        if (val !== null && val !== undefined) {
+          extractNestedTypes(val, toPascalCase(key), definitions, nestedTypeName, false);
+        }
+      }
+      
+      // 타입 정의 추가
+      if (properties.length > 0) {
+        const interfaceContent = `export interface ${nestedTypeName} {\n${properties.join('\n')}\n}`;
+        definitions.unshift({ name: nestedTypeName, content: interfaceContent });
+      }
+    } else {
+      // 루트 레벨이거나 타입 이름이 없는 경우, 자식만 재귀적으로 추출
+      for (const [key, val] of Object.entries(value)) {
+        const childParentTypeName = isRoot ? parentTypeName : (parentTypeName ? `${parentTypeName}${typeName}` : typeName);
+        extractNestedTypes(val, toPascalCase(key), definitions, childParentTypeName, false);
+      }
     }
   }
 }
@@ -174,7 +230,7 @@ function extractNestedTypes(
 /**
  * 프로퍼티 타입 결정
  */
-function getPropertyType(value: any, typeName: string): string {
+function getPropertyType(value: any, typeName: string, parentTypeName?: string): string {
   if (value === null || value === undefined) {
     return 'null';
   }
@@ -185,7 +241,11 @@ function getPropertyType(value: any, typeName: string): string {
     }
     const itemType = value[0];
     if (typeof itemType === 'object' && !Array.isArray(itemType) && itemType !== null) {
-      return `${typeName}Item[]`;
+      // 부모 타입 이름을 포함하여 고유한 타입 이름 생성
+      const itemTypeName = parentTypeName 
+        ? `${parentTypeName}${typeName}Item`
+        : `${typeName}Item`;
+      return `${itemTypeName}[]`;
     }
     // 배열의 모든 아이템을 확인하여 유니온 타입 생성
     const types = new Set<string>();
@@ -193,7 +253,7 @@ function getPropertyType(value: any, typeName: string): string {
       if (item === null || item === undefined) {
         types.add('null');
       } else {
-        types.add(getPropertyType(item, typeName));
+        types.add(getPropertyType(item, typeName, parentTypeName));
       }
     }
     const typeArray = Array.from(types);
@@ -213,6 +273,14 @@ function getPropertyType(value: any, typeName: string): string {
     case 'boolean':
       return 'boolean';
     case 'object':
+      // 부모 타입 이름을 포함하여 고유한 타입 이름 생성 (중복 방지)
+      if (parentTypeName) {
+        // 이미 부모 타입 이름이 포함되어 있는지 확인
+        if (typeName.startsWith(parentTypeName)) {
+          return typeName;
+        }
+        return `${parentTypeName}${typeName}`;
+      }
       return typeName;
     default:
       return 'any';

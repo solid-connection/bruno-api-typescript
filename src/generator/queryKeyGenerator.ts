@@ -70,7 +70,9 @@ export function queryKeyStructureToCode(structure: QueryKeyStructure): string {
   ];
 
   for (const [domain, endpoints] of Object.entries(structure)) {
-    lines.push(`  ${domain}: {`);
+    // 하이픈이나 점이 포함된 도메인 이름은 문자열로 감싸기
+    const domainKey = (domain.includes('-') || domain.includes('.')) ? `'${domain}'` : domain;
+    lines.push(`  ${domainKey}: {`);
 
     for (const [endpoint, value] of Object.entries(endpoints)) {
       lines.push(`    ${endpoint}: '${value}' as const,`);

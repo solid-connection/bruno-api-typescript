@@ -31,12 +31,39 @@ function generateApiFunctionForFactory(apiFunc: ApiFunction, parsed: ParsedBruno
   const paramsList: string[] = [];
   const urlParams: string[] = [];
 
-  // URL 파라미터 추출
-  const urlParamMatches = url.matchAll(/:(\w+)|\{(\w+)\}/g);
+  // URL 생성 로직
+  // 1. {{URL}} 제거
+  let processedUrl = url.replace(/\{\{URL\}\}/g, '');
+
+  // 2. 브루노 변수 {{변수명}} 처리 (URL 파라미터로 변환)
+  const brunoVarPattern = /\{\{([^}]+)\}\}/g;
+  let match;
+  const processedBrunoVars = new Set<string>();
+
+  while ((match = brunoVarPattern.exec(processedUrl)) !== null) {
+    const varName = match[1];
+    // URL 변수는 제외
+    if (varName === 'URL') continue;
+    
+    const camelVarName = varName.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    if (!urlParams.includes(camelVarName) && !processedBrunoVars.has(camelVarName)) {
+      urlParams.push(camelVarName);
+      paramsList.push(`${camelVarName}: string | number`);
+      processedBrunoVars.add(camelVarName);
+    }
+    processedUrl = processedUrl.replace(match[0], `\${params.${camelVarName}}`);
+  }
+
+  // 3. 기존 URL 파라미터 패턴 처리 (:param, {param})
+  const urlParamMatches = processedUrl.matchAll(/:(\w+)|\{(\w+)\}/g);
   for (const match of urlParamMatches) {
     const paramName = match[1] || match[2];
-    urlParams.push(paramName);
-    paramsList.push(`${paramName}: string | number`);
+    if (!urlParams.includes(paramName) && !processedBrunoVars.has(paramName)) {
+      urlParams.push(paramName);
+      paramsList.push(`${paramName}: string | number`);
+    }
+    processedUrl = processedUrl.replace(`:${paramName}`, `\${params.${paramName}}`);
+    processedUrl = processedUrl.replace(`{${paramName}}`, `\${params.${paramName}}`);
   }
 
   // Query 파라미터
@@ -53,12 +80,7 @@ function generateApiFunctionForFactory(apiFunc: ApiFunction, parsed: ParsedBruno
   const paramsStr = paramsList.length > 0 ? `{ ${paramsList.join(', ')} }` : '';
   const paramsType = paramsList.length > 0 ? `params: ${paramsStr}` : '';
 
-  // URL 생성 로직
-  let urlExpression = `\`${url}\``;
-  for (const param of urlParams) {
-    urlExpression = urlExpression.replace(`:${param}`, `\${params.${param}}`);
-    urlExpression = urlExpression.replace(`{${param}}`, `\${params.${param}}`);
-  }
+  let urlExpression = `\`${processedUrl}\``;
 
   // 함수 생성 (화살표 함수로)
   lines.push(`async (${paramsType}): Promise<${responseType}> => {`);

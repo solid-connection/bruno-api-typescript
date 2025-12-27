@@ -78,8 +78,17 @@ export function parseBrunoFile(filePath: string): ParsedBrunoFile {
       currentBlock = 'meta';
       blockContent = [];
       continue;
+    } else if (trimmed.match(/^(get|post|put|patch|delete|head|options)\s*\{/i)) {
+      // HTTP 메서드 블록 형식: put { url: ... }
+      const match = trimmed.match(/^(get|post|put|patch|delete|head|options)\s*\{/i);
+      if (match) {
+        result.http.method = match[1].toUpperCase();
+        currentBlock = 'http';
+        blockContent = [];
+        continue;
+      }
     } else if (trimmed.match(/^(get|post|put|patch|delete|head|options)\s+/i)) {
-      // HTTP 메서드 라인
+      // HTTP 메서드 라인 형식: get /api/endpoint
       const match = trimmed.match(/^(get|post|put|patch|delete|head|options)\s+(.+)$/i);
       if (match) {
         result.http.method = match[1].toUpperCase();
@@ -148,6 +157,9 @@ function parseBlock(result: ParsedBrunoFile, blockName: string, content: string[
     case 'meta':
       parseMeta(result, content);
       break;
+    case 'http':
+      parseHttp(result, content);
+      break;
     case 'headers':
       parseHeaders(result, content);
       break;
@@ -168,6 +180,18 @@ function parseBlock(result: ParsedBrunoFile, blockName: string, content: string[
     case 'tests':
       result.tests = content.join('\n').trim();
       break;
+  }
+}
+
+/**
+ * HTTP 블록 파싱 (put { url: ... } 형식)
+ */
+function parseHttp(result: ParsedBrunoFile, lines: string[]): void {
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('url:')) {
+      result.http.url = trimmed.substring(4).trim();
+    }
   }
 }
 
@@ -264,7 +288,7 @@ export function extractJsonFromDocs(docs: string): any {
     if (jsonMatch && jsonMatch[1]) {
       return JSON.parse(jsonMatch[1].trim());
     }
-    
+
     // 일반 JSON 파싱 시도
     return JSON.parse(docs.trim());
   } catch (error) {
