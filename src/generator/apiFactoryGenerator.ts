@@ -8,6 +8,18 @@ import { ApiFunction } from './apiClientGenerator';
 import { generateTypeScriptInterface, toCamelCase, functionNameToTypeName } from './typeGenerator';
 
 /**
+ * 빈 인터페이스를 Record<string, never> 타입으로 변환
+ */
+function convertEmptyInterfaceToType(content: string, typeName: string): string {
+  // 빈 인터페이스 패턴: export interface TypeName { }
+  const emptyInterfacePattern = new RegExp(`export interface ${typeName}\\s*\\{\\s*\\}`);
+  if (emptyInterfacePattern.test(content)) {
+    return `export type ${typeName} = Record<string, never>;`;
+  }
+  return content;
+}
+
+/**
  * 팩토리용 API 함수 코드 생성 (객체 속성으로 사용)
  */
 function generateApiFunctionForFactory(apiFunc: ApiFunction, parsed: ParsedBrunoFile): string {
@@ -91,14 +103,35 @@ export function generateApiFactory(
     // Response 타입 생성
     if (parsed.docs) {
       const jsonData = extractJsonFromDocs(parsed.docs);
-      if (jsonData) {
-        const typeDefs = generateTypeScriptInterface(jsonData, responseType);
-        for (const typeDef of typeDefs) {
-          if (!typeDefinitions.has(typeDef.content)) {
-            typeDefinitions.add(typeDef.content);
-            lines.push(typeDef.content);
+      if (jsonData !== null && jsonData !== undefined) {
+        // 빈 객체 체크
+        if (typeof jsonData === 'object' && !Array.isArray(jsonData) && Object.keys(jsonData).length === 0) {
+          // 빈 객체인 경우 Record<string, never> 타입 생성
+          const emptyType = `export type ${responseType} = Record<string, never>;`;
+          if (!typeDefinitions.has(emptyType)) {
+            typeDefinitions.add(emptyType);
+            lines.push(emptyType);
             lines.push('');
           }
+        } else {
+          const typeDefs = generateTypeScriptInterface(jsonData, responseType);
+          for (const typeDef of typeDefs) {
+            // 빈 인터페이스 체크 및 변환
+            const processedContent = convertEmptyInterfaceToType(typeDef.content, responseType);
+            if (!typeDefinitions.has(processedContent)) {
+              typeDefinitions.add(processedContent);
+              lines.push(processedContent);
+              lines.push('');
+            }
+          }
+        }
+      } else {
+        // JSON 추출 실패 시 void 타입 생성
+        const defaultType = `export type ${responseType} = void;`;
+        if (!typeDefinitions.has(defaultType)) {
+          typeDefinitions.add(defaultType);
+          lines.push(defaultType);
+          lines.push('');
         }
       }
     } else {

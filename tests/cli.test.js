@@ -453,5 +453,159 @@ docs {
   });
 });
 
+describe('빈 타입 생성 테스트', () => {
+  test('빈 객체 {}인 경우 Record<string, never> 타입 생성', () => {
+    const emptyObjectFixtureDir = join(FIXTURES_DIR, 'bruno-empty-object');
+    mkdirSync(emptyObjectFixtureDir, { recursive: true });
+    
+    // 폴더 구조 생성
+    const testFolder = join(emptyObjectFixtureDir, 'test');
+    mkdirSync(testFolder, { recursive: true });
+
+    const emptyObjectFile = join(testFolder, 'empty-response.bru');
+    const emptyObjectContent = `meta {
+  name: Empty Response Test
+  type: http
+}
+
+get /test/empty
+
+docs {
+  \`\`\`json
+  {}
+  \`\`\`
+}
+`;
+    require('fs').writeFileSync(emptyObjectFile, emptyObjectContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'empty-object-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${emptyObjectFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // api.ts 파일 확인 (도메인은 폴더명 'test'가 됨)
+    const apiFile = join(outputDir, 'test', 'api.ts');
+    assert.ok(existsSync(apiFile), 'api.ts 파일이 생성되어야 함');
+
+    const apiContent = readFileSync(apiFile, 'utf-8');
+    assert.ok(apiContent.includes('Record<string, never>'), '빈 객체는 Record<string, never> 타입이어야 함');
+    assert.ok(!apiContent.includes('export interface'), '빈 인터페이스는 생성되지 않아야 함');
+
+    console.log('✅ 빈 객체 Record<string, never> 타입 생성 테스트 통과');
+  });
+
+  test('parsed.docs가 있지만 JSON 추출 실패 시 void 타입 생성', () => {
+    const invalidJsonFixtureDir = join(FIXTURES_DIR, 'bruno-invalid-json');
+    mkdirSync(invalidJsonFixtureDir, { recursive: true });
+    
+    // 폴더 구조 생성
+    const testFolder = join(invalidJsonFixtureDir, 'test');
+    mkdirSync(testFolder, { recursive: true });
+
+    const invalidJsonFile = join(testFolder, 'invalid-json.bru');
+    const invalidJsonContent = `meta {
+  name: Invalid JSON Test
+  type: http
+}
+
+get /test/invalid
+
+docs {
+  이것은 유효하지 않은 JSON입니다
+  { invalid json }
+}
+`;
+    require('fs').writeFileSync(invalidJsonFile, invalidJsonContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'invalid-json-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${invalidJsonFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // api.ts 파일 확인 (도메인은 폴더명 'test'가 됨)
+    const apiFile = join(outputDir, 'test', 'api.ts');
+    assert.ok(existsSync(apiFile), 'api.ts 파일이 생성되어야 함');
+
+    const apiContent = readFileSync(apiFile, 'utf-8');
+    assert.ok(apiContent.includes('void'), 'JSON 추출 실패 시 void 타입이 생성되어야 함');
+
+    console.log('✅ JSON 추출 실패 시 void 타입 생성 테스트 통과');
+  });
+
+  test('빈 배열 []인 경우 any[] 타입 생성', () => {
+    const emptyArrayFixtureDir = join(FIXTURES_DIR, 'bruno-empty-array');
+    mkdirSync(emptyArrayFixtureDir, { recursive: true });
+    
+    // 폴더 구조 생성
+    const testFolder = join(emptyArrayFixtureDir, 'test');
+    mkdirSync(testFolder, { recursive: true });
+
+    const emptyArrayFile = join(testFolder, 'empty-array.bru');
+    const emptyArrayContent = `meta {
+  name: Empty Array Test
+  type: http
+}
+
+get /test/empty-array
+
+docs {
+  \`\`\`json
+  {
+    "items": []
+  }
+  \`\`\`
+}
+`;
+    require('fs').writeFileSync(emptyArrayFile, emptyArrayContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'empty-array-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${emptyArrayFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // api.ts 파일 확인 (도메인은 폴더명 'test'가 됨)
+    const apiFile = join(outputDir, 'test', 'api.ts');
+    assert.ok(existsSync(apiFile), 'api.ts 파일이 생성되어야 함');
+
+    const apiContent = readFileSync(apiFile, 'utf-8');
+    assert.ok(apiContent.includes('any[]'), '빈 배열은 any[] 타입이어야 함');
+
+    console.log('✅ 빈 배열 any[] 타입 생성 테스트 통과');
+  });
+
+  test('parsed.docs가 없는 경우 void 타입 생성', () => {
+    const noDocsFixtureDir = join(FIXTURES_DIR, 'bruno-no-docs');
+    mkdirSync(noDocsFixtureDir, { recursive: true });
+    
+    // 폴더 구조 생성
+    const testFolder = join(noDocsFixtureDir, 'test');
+    mkdirSync(testFolder, { recursive: true });
+
+    const noDocsFile = join(testFolder, 'no-docs.bru');
+    const noDocsContent = `meta {
+  name: No Docs Test
+  type: http
+}
+
+get /test/no-docs
+`;
+    require('fs').writeFileSync(noDocsFile, noDocsContent);
+
+    const outputDir = join(TEST_OUTPUT_DIR, 'no-docs-output');
+    execSync(`node dist/cli/index.js generate-hooks -i ${noDocsFixtureDir} -o ${outputDir}`, {
+      cwd: join(__dirname, '..'),
+    });
+
+    // api.ts 파일 확인 (도메인은 폴더명 'test'가 됨)
+    const apiFile = join(outputDir, 'test', 'api.ts');
+    assert.ok(existsSync(apiFile), 'api.ts 파일이 생성되어야 함');
+
+    const apiContent = readFileSync(apiFile, 'utf-8');
+    assert.ok(apiContent.includes('void'), 'docs가 없으면 void 타입이 생성되어야 함');
+
+    console.log('✅ docs 없을 때 void 타입 생성 테스트 통과');
+  });
+});
+
 console.log('\n🎉 모든 테스트 완료!');
 

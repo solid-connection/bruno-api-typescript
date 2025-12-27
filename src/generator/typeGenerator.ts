@@ -99,8 +99,14 @@ export function generateTypeScriptInterface(
     properties.push(`  ${key}: ${type};`);
   }
 
-  const mainInterface = `export interface ${interfaceName} {\n${properties.join('\n')}\n}`;
-  definitions.push({ name: interfaceName, content: mainInterface });
+  // 빈 인터페이스인 경우 Record<string, never> 타입으로 생성
+  if (properties.length === 0) {
+    const emptyType = `export type ${interfaceName} = Record<string, never>;`;
+    definitions.push({ name: interfaceName, content: emptyType });
+  } else {
+    const mainInterface = `export interface ${interfaceName} {\n${properties.join('\n')}\n}`;
+    definitions.push({ name: interfaceName, content: mainInterface });
+  }
 
   return definitions;
 }
