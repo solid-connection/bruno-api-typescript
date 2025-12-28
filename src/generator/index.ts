@@ -12,6 +12,7 @@ import { generateQueryKeyFile } from './queryKeyGenerator';
 import { generateMSWHandler, generateDomainHandlersIndex, generateMSWIndex } from './mswGenerator';
 import { generateApiFactory } from './apiFactoryGenerator';
 import { detectHookChanges, generateChangeReport } from './hookChangeDetector';
+import { toCamelCase } from './typeGenerator';
 
 export interface GenerateHooksOptions {
   brunoDir: string;
@@ -206,6 +207,12 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
     const indexContent = files
       .map(file => {
         const name = file.replace('.ts', '');
+        // api.ts는 named export이므로 특별 처리
+        if (name === 'api') {
+          const factoryName = `${toCamelCase(domain)}Api`;
+          return `export { ${factoryName} } from './api';`;
+        }
+        // 훅 파일들은 default export
         return `export { default as ${name} } from './${name}';`;
       })
       .join('\n') + '\n';
