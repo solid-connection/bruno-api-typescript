@@ -12,6 +12,7 @@ import { convertBrunoToOpenAPI } from '../converter/openapiConverter';
 import { detectChanges } from '../diff/changeDetector';
 import { generateChangelog, formatConsoleOutput, ChangelogFormat } from '../diff/changelogGenerator';
 import { generateHooks } from '../generator/index';
+import { BrunoHashCache } from '../generator/brunoHashCache';
 
 const program = new Command();
 
@@ -117,6 +118,8 @@ program
   .option('-o, --output <path>', 'Output hooks directory', './src/apis')
   .option('--axios-path <path>', 'Axios instance import path', '@/utils/axiosInstance')
   .option('--msw-output <path>', 'Output MSW handlers directory (optional)')
+  .option('--force', 'Force regenerate all hooks (ignore hash cache)', false)
+  .option('--clear-cache', 'Clear hash cache before generation', false)
   .action(async (options) => {
     try {
       const inputDir = resolve(process.cwd(), options.input);
@@ -129,6 +132,14 @@ program
         process.exit(1);
       }
 
+      // --clear-cache 처리
+      if (options.clearCache) {
+        const cache = new BrunoHashCache(outputDir);
+        cache.clear();
+        cache.save();
+        console.log('🗑️  Hash cache cleared\n');
+      }
+
       console.log('🎣 Generating React Query hooks...\n');
 
       await generateHooks({
@@ -136,6 +147,7 @@ program
         outputDir,
         axiosInstancePath: options.axiosPath,
         mswOutputDir,
+        force: options.force,
       });
 
       console.log('\n🎉 React Query hooks generated successfully!');
