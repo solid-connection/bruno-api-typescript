@@ -68,7 +68,7 @@ function generateApiFunctionForFactory(apiFunc: ApiFunction, parsed: ParsedBruno
 
   // Query 파라미터
   if (method === 'GET') {
-    paramsList.push('params?: Record<string, any>');
+    paramsList.push('params?: Record<string, unknown>');
   }
 
   // Body 파라미터
@@ -219,4 +219,3 @@ export function generateApiFactory(
 
   return lines.join('\n');
 }
-

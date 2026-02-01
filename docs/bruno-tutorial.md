@@ -123,6 +123,17 @@ docs {
 
 **참고**: 이 프로젝트는 GitHub Actions에서 자동으로 실행됩니다. 로컬에서 테스트하려면 저장소를 클론하고 빌드한 후 사용하세요.
 
+**생성되는 코드**:
+```typescript
+// src/apis/users/api.ts
+export const usersApi = {
+  getProfile: async (params: { params?: Record<string, unknown> }): Promise<GetProfileResponse> => {
+    const res = await axiosInstance.get<GetProfileResponse>(`/users/profile`, { params: params?.params });
+    return res.data;
+  }
+};
+```
+
 ---
 
 ## 튜토리얼 2: POST 요청 만들기
@@ -381,8 +392,8 @@ touch "bruno/7) 어드민 [Admin]/생성 [create].bru"
 - `한글명 [영문키]` 형식
 - 대괄호 `[]` 안의 영문키만 사용됨
 - **HTTP 메서드 prefix는 포함하지 않음** (예: `get-`, `post-` 등)
-- 예: `목록 조회 [list].bru` → `list` → `list` → `get-list.ts` (GET 메서드인 경우)
-- 예: `생성 [create].bru` → `create` → `create` → `post-create.ts` (POST 메서드인 경우)
+- 예: `목록 조회 [list].bru` → `list` → `getList` (GET 메서드인 경우)
+- 예: `생성 [create].bru` → `create` → `postCreate` (POST 메서드인 경우)
 
 ---
 
@@ -584,12 +595,12 @@ headers {
 
 1. 실제 API 엔드포인트로 Bruno 파일 작성
 2. OpenAPI 생성: `npm run api:generate`
-3. React Query hooks 생성: `npm run api:hooks`
+3. API 클라이언트 생성: `npm run api:hooks`
 
 **더 알아보기**:
 
 - [Bruno 파일 작성 가이드](./bruno-guide.md) - 레퍼런스
-- [빠른 시작](./quickstart.md) - 명령어 정리
+-- [빠른 시작](./quickstart.md) - 명령어 정리
 
 ---
 

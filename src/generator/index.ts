@@ -1,16 +1,15 @@
 /**
- * React Query 훅 생성 메인 로직
- * Bruno 파일들을 읽어서 React Query 훅들을 생성
+ * API 생성 메인 로직
+ * Bruno 파일들을 읽어서 API 팩토리 및 타입 정의를 생성
  */
 
 import { readdirSync, statSync, mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import { parseBrunoFile } from '../parser/bruParser';
 import { extractApiFunction } from './apiClientGenerator';
-import { generateReactQueryHook } from './reactQueryGenerator';
-import { generateQueryKeyFile } from './queryKeyGenerator';
 import { generateMSWHandler, generateDomainHandlersIndex, generateMSWIndex } from './mswGenerator';
 import { generateApiFactory } from './apiFactoryGenerator';
+import { generateApiDefinitionsFile } from './apiDefinitionGenerator';
 import { BrunoHashCache } from './brunoHashCache';
 import { toCamelCase } from './typeGenerator';
 
@@ -18,8 +17,8 @@ export interface GenerateHooksOptions {
   brunoDir: string;
   outputDir: string;
   axiosInstancePath?: string;
-  mswOutputDir?: string; // MSW 핸들러 출력 디렉토리
-  force?: boolean; // 강제 재생성 플래그
+  mswOutputDir?: string;
+  force?: boolean;
 }
 
 /**
@@ -75,12 +74,11 @@ function extractDomain(filePath: string, brunoDir: string): string {
 }
 
 /**
- * React Query 훅 생성
+ * API 팩토리 및 타입 정의 생성
  */
 export async function generateHooks(options: GenerateHooksOptions): Promise<void> {
   const { brunoDir, outputDir, axiosInstancePath = '@/utils/axiosInstance', mswOutputDir, force = false } = options;
 
-  // 해시 캐시 초기화
   const hashCache = new BrunoHashCache(outputDir);
   hashCache.load();
 
@@ -112,13 +110,11 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
 
   console.log(`📊 Changed: ${changedFiles.length}, Skipped: ${skippedFiles.length}`);
 
-  // 변경이 없으면 종료
   if (changedFiles.length === 0) {
-    console.log('✅ All hooks are up to date!');
+    console.log('✅ All API clients are up to date!');
     return;
   }
 
-  // 변경된 파일 파싱
   const parsedChangedFiles = changedFiles.map(filePath => {
     try {
       const parsed = parseBrunoFile(filePath);
@@ -130,7 +126,6 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
     }
   }).filter(Boolean) as Array<{ filePath: string; parsed: any; domain: string }>;
 
-  // 전체 파일 파싱 (QueryKeys, API 팩토리용)
   const allParsedFiles = brunoFiles.map(filePath => {
     try {
       const parsed = parseBrunoFile(filePath);
@@ -143,22 +138,10 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
 
   console.log(`📝 Parsed ${parsedChangedFiles.length} changed files successfully`);
 
-  // 출력 디렉토리 생성
   mkdirSync(outputDir, { recursive: true });
 
-  // Query Keys 파일 생성 (항상 전체)
-  console.log('\n📦 Generating query keys...');
-  const queryKeyContent = generateQueryKeyFile(
-    allParsedFiles.map(f => ({ path: f.filePath, parsed: f.parsed, domain: f.domain }))
-  );
-  const queryKeyPath = join(outputDir, 'queryKeys.ts');
-  writeFileSync(queryKeyPath, queryKeyContent, 'utf-8');
-  console.log(`✅ Generated: ${queryKeyPath}`);
-
-  // 영향받는 도메인 수집
   const affectedDomains = new Set(parsedChangedFiles.map(f => f.domain));
 
-  // 도메인별로 API 함수 그룹화 (전체 파일)
   const domainApiFunctions = new Map<string, Array<{ apiFunc: any; parsed: any }>>();
   const domainDirs = new Set<string>();
 
@@ -168,21 +151,18 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
       continue;
     }
 
-    // 도메인 디렉토리 생성
     const domainDir = join(outputDir, domain);
     if (!domainDirs.has(domainDir)) {
       mkdirSync(domainDir, { recursive: true });
       domainDirs.add(domainDir);
     }
 
-    // 도메인별 API 함수 수집
     if (!domainApiFunctions.has(domain)) {
       domainApiFunctions.set(domain, []);
     }
     domainApiFunctions.get(domain)!.push({ apiFunc, parsed });
   }
 
-  // 영향받는 도메인의 API 팩토리만 재생성
   console.log('\n🏭 Generating API factories...');
   for (const domain of affectedDomains) {
     const domainDir = join(outputDir, domain);
@@ -194,41 +174,35 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
     console.log(`✅ Generated: ${factoryPath}`);
   }
 
-  // 훅 생성 (변경된 파일만)
-  console.log('\n🎣 Generating React Query hooks...');
-  for (const { filePath, parsed, domain } of parsedChangedFiles) {
-    const apiFunc = extractApiFunction(parsed, filePath);
+  console.log('\n📋 Generating API definitions...');
+  for (const domain of affectedDomains) {
+    const domainDir = join(outputDir, domain);
+    const apiFunctions = domainApiFunctions.get(domain) || [];
+    const definitionsContent = generateApiDefinitionsFile(apiFunctions, domain);
+    const definitionsPath = join(domainDir, 'apiDefinitions.ts');
+    writeFileSync(definitionsPath, definitionsContent, 'utf-8');
+    console.log(`✅ Generated: ${definitionsPath}`);
+  }
 
-    // extractApiFunction이 실패해도 해시는 업데이트 (다음번에 스킵하기 위해)
+  for (const { filePath } of parsedChangedFiles) {
     const currentHash = hashCache.calculateHash(filePath);
-
+    const apiFunc = extractApiFunction(parseBrunoFile(filePath), filePath);
+    
     if (!apiFunc) {
-      // API 함수 추출 실패 시에도 해시 저장 (빈 outputFiles 배열)
       hashCache.setHash(filePath, currentHash, []);
       continue;
     }
-
-    // 훅 생성
-    const hook = generateReactQueryHook(parsed, apiFunc, domain, axiosInstancePath);
-
-    // 도메인 디렉토리 생성
+    
+    const domain = extractDomain(filePath, brunoDir);
     const domainDir = join(outputDir, domain);
-    if (!domainDirs.has(domainDir)) {
-      mkdirSync(domainDir, { recursive: true });
-      domainDirs.add(domainDir);
-    }
-
-    // 훅 파일 직접 생성/덮어쓰기 (Legacy 로직 제거)
-    const hookPath = join(domainDir, hook.fileName);
-    writeFileSync(hookPath, hook.content, 'utf-8');
-
-    // 해시 업데이트
-    hashCache.setHash(filePath, currentHash, [hookPath]);
-
-    console.log(`✅ Generated: ${hookPath}`);
+    const outputFiles = [
+      join(domainDir, 'api.ts'),
+      join(domainDir, 'apiDefinitions.ts'),
+    ];
+    
+    hashCache.setHash(filePath, currentHash, outputFiles);
   }
 
-  // 인덱스 파일 생성 (영향받는 도메인만)
   console.log('\n📄 Generating index files...');
   for (const domain of affectedDomains) {
     const domainDir = join(outputDir, domain);
@@ -237,13 +211,17 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
     const indexContent = files
       .map(file => {
         const name = file.replace('.ts', '');
-        // api.ts는 named export이므로 특별 처리
         if (name === 'api') {
           const factoryName = `${toCamelCase(domain)}Api`;
           return `export { ${factoryName} } from './api';`;
         }
-        // 훅 파일들은 default export
-        return `export { default as ${name} } from './${name}';`;
+        if (name === 'apiDefinitions') {
+          const camelDomain = toCamelCase(domain);
+          const definitionsValueName = `${camelDomain}ApiDefinitions`;
+          const definitionsTypeName = `${camelDomain.charAt(0).toUpperCase()}${camelDomain.slice(1)}ApiDefinitions`;
+          return `export { ${definitionsValueName}, ${definitionsTypeName} } from './apiDefinitions';`;
+        }
+        return `export * from './${name}';`;
       })
       .join('\n') + '\n';
 
@@ -252,18 +230,16 @@ export async function generateHooks(options: GenerateHooksOptions): Promise<void
     console.log(`✅ Generated: ${indexPath}`);
   }
 
-  // 캐시 정리 및 저장
   hashCache.cleanup();
   hashCache.save();
   console.log(`\n💾 Hash cache saved: ${hashCache.getCachePath()}`);
 
-  console.log('\n✨ All hooks generated successfully!');
+  console.log('\n✨ All API clients generated successfully!');
   console.log(`\n📂 Output directory: ${outputDir}`);
   console.log('\n📚 Usage example:');
-  console.log(`import { useGetApplicationsCompetitors } from './${relative(process.cwd(), join(outputDir, 'applications'))}';\n`);
-  console.log(`const { data, isLoading, error } = useGetApplicationsCompetitors();`);
+  console.log(`import { applicationsApi } from './${relative(process.cwd(), join(outputDir, 'applications'))}';\n`);
+  console.log(`const data = await applicationsApi.getCompetitors({ params: { page: 1 } });`);
 
-  // MSW 핸들러 생성 (옵션이 제공된 경우)
   if (mswOutputDir) {
     console.log('\n🎭 Generating MSW handlers...');
     await generateMSWHandlers(parsedChangedFiles, mswOutputDir);
