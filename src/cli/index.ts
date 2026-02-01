@@ -2,7 +2,7 @@
 
 /**
  * bruno-api-typescript CLI
- * Generate TypeScript API clients, React Query hooks, and OpenAPI specs from Bruno files
+ * Generate TypeScript API clients, typed definitions, and OpenAPI specs from Bruno files
  */
 
 import { Command } from 'commander';
@@ -18,7 +18,7 @@ const program = new Command();
 
 program
   .name('bruno-api')
-  .description('Generate TypeScript API clients, React Query hooks, and OpenAPI specs from Bruno files')
+  .description('Generate TypeScript API clients, typed definitions, and OpenAPI specs from Bruno files')
   .version('0.3.0');
 
 program
@@ -113,12 +113,12 @@ program
 
 program
   .command('generate-hooks')
-  .description('Generate React Query hooks from Bruno collection')
+  .description('Generate typed API factories and definitions from Bruno collection')
   .option('-i, --input <path>', 'Bruno collection directory', './bruno')
-  .option('-o, --output <path>', 'Output hooks directory', './src/apis')
+  .option('-o, --output <path>', 'Output directory', './src/apis')
   .option('--axios-path <path>', 'Axios instance import path', '@/utils/axiosInstance')
   .option('--msw-output <path>', 'Output MSW handlers directory (optional)')
-  .option('--force', 'Force regenerate all hooks (ignore hash cache)', false)
+  .option('--force', 'Force regenerate all clients (ignore hash cache)', false)
   .option('--clear-cache', 'Clear hash cache before generation', false)
   .action(async (options) => {
     try {
@@ -126,13 +126,11 @@ program
       const outputDir = resolve(process.cwd(), options.output);
       const mswOutputDir = options.mswOutput ? resolve(process.cwd(), options.mswOutput) : undefined;
 
-      // 입력 디렉토리 확인
       if (!existsSync(inputDir)) {
         console.error(`❌ Bruno directory not found: ${inputDir}`);
         process.exit(1);
       }
 
-      // --clear-cache 처리
       if (options.clearCache) {
         const cache = new BrunoHashCache(outputDir);
         cache.clear();
@@ -140,7 +138,7 @@ program
         console.log('🗑️  Hash cache cleared\n');
       }
 
-      console.log('🎣 Generating React Query hooks...\n');
+      console.log('🏭 Generating typed API clients...\n');
 
       await generateHooks({
         brunoDir: inputDir,
@@ -150,7 +148,7 @@ program
         force: options.force,
       });
 
-      console.log('\n🎉 React Query hooks generated successfully!');
+      console.log('\n🎉 API clients generated successfully!');
     } catch (error: any) {
       console.error(`❌ Error: ${error.message}`);
       process.exit(1);

@@ -2,9 +2,9 @@
 
 > **Bruno 파일을 작성하면, 나머지는 자동으로**
 
-이 프로젝트는 Bruno `.bru` 파일을 OpenAPI 스펙과 React Query hooks로 자동 변환하는 GitHub Apps 기반 자동화 도구입니다.
+이 프로젝트는 Bruno `.bru` 파일을 OpenAPI 스펙과 타입 안전한 API 클라이언트로 자동 변환하는 GitHub Apps 기반 자동화 도구입니다.
 
-백엔드 개발자는 Bruno 파일만 작성하면, GitHub Actions가 자동으로 프론트엔드 저장소에 타입과 훅을 생성하고 PR을 만들어줍니다.
+백엔드 개발자는 Bruno 파일만 작성하면, GitHub Actions가 자동으로 프론트엔드 저장소에 타입 정의와 API 클라이언트를 생성하고 PR을 만들어줍니다.
 
 ## 작동 방식
 
@@ -13,7 +13,7 @@ graph LR
     A[백엔드: Bruno 파일 수정] --> B[GitHub Push]
     B --> C[GitHub Actions 실행]
     C --> D[OpenAPI 생성]
-    C --> E[React Query Hooks 생성]
+    C --> E[API 클라이언트 생성]
     E --> F[프론트엔드 저장소 PR 자동 생성]
 ```
 
@@ -95,7 +95,7 @@ docs {
 - **[GitHub Apps 설정 가이드](./docs/github-apps-simple.md)** - Workflow 파일 예시 포함
 - **[Bruno 파일 작성 튜토리얼](./docs/bruno-tutorial.md)** - 단계별 따라하기
 - **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 상세 레퍼런스
-- **[변경사항 처리 가이드](./docs/migration-guide.md)** - React Query 훅 변경사항 처리 방법
+- **[변경사항 처리 가이드](./docs/migration-guide.md)** - API 클라이언트 변경사항 처리 방법
 
 ## 라이선스
 

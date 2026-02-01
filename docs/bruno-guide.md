@@ -299,7 +299,7 @@ docs {
 
 ### 파일명 규칙
 
-**파일명이 쿼리 키와 훅 이름에 직접 사용됩니다!**
+**파일명이 API 함수 이름에 직접 사용됩니다!**
 
 > ⚠️ **중요**: 파일명에 **HTTP 메서드를 포함하지 마세요**. 메서드는 `.bru` 파일 내부의 `get`, `post`, `put`, `patch`, `delete` 블록에서 자동으로 인식됩니다.
 
@@ -308,9 +308,9 @@ docs {
 1. **`한글명 [영문키]` 형식** (권장, 폴더명과 동일한 패턴)
 
    ```
-   멘토 목록 조회 [mentor-list].bru     → mentor-list → mentorList → get-mentorList.ts
-   사용자 프로필 [user-profile].bru      → user-profile → userProfile → get-userProfile.ts
-   지원서 생성 [create-application].bru → create-application → createApplication → post-createApplication.ts
+   멘토 목록 조회 [mentor-list].bru     → mentor-list → mentorList → getMentorList
+   사용자 프로필 [user-profile].bru      → user-profile → userProfile → getUserProfile
+   지원서 생성 [create-application].bru → create-application → createApplication → postCreateApplication
    ```
 
    - 대괄호 안의 `영문키`만 사용됩니다
@@ -320,9 +320,9 @@ docs {
 2. **영문 파일명** (기존 방식, 호환)
 
    ```
-   competitors.bru        → competitors → competitors → get-competitors.ts
-   user-profile.bru       → user-profile → userProfile → get-userProfile.ts
-   create-application.bru → create-application → createApplication → post-createApplication.ts
+   competitors.bru        → competitors → getCompetitors
+   user-profile.bru       → user-profile → getUserProfile
+   create-application.bru → create-application → postCreateApplication
    ```
 
    - 패턴이 없으면 파일명 그대로 사용
@@ -333,18 +333,18 @@ docs {
 **✅ 올바른 예시:**
 
 ```
-멘토 목록 조회 [mentor-list].bru        → QueryKeys.mentors.mentorList → get-mentorList.ts
-사용자 프로필 [user-profile].bru         → QueryKeys.users.userProfile → get-userProfile.ts
-지원서 생성 [create-application].bru     → QueryKeys.applications.createApplication → post-createApplication.ts
-프로필 수정 [update-profile].bru          → QueryKeys.users.updateProfile → put-updateProfile.ts
-회원 탈퇴 [account].bru                   → QueryKeys.auth.account → delete-account.ts
+멘토 목록 조회 [mentor-list].bru        → mentorList → getMentorList
+사용자 프로필 [user-profile].bru         → userProfile → getUserProfile
+지원서 생성 [create-application].bru     → createApplication → postCreateApplication
+프로필 수정 [update-profile].bru          → updateProfile → putUpdateProfile
+회원 탈퇴 [account].bru                   → account → deleteAccount
 ```
 
 **❌ 잘못된 예시 (HTTP 메서드 포함):**
 
 ```
-멘토 목록 조회 [get-mentor-list].bru     → get-mentor-list → getMentorList → get-getMentorList.ts (중복!)
-사용자 삭제 [delete-user].bru            → delete-user → deleteUser → delete-deleteUser.ts (중복!)
+멘토 목록 조회 [get-mentor-list].bru     → getMentorList → getGetMentorList (중복!)
+사용자 삭제 [delete-user].bru            → deleteUser → deleteDeleteUser (중복!)
 ```
 
 #### 네이밍 규칙
@@ -358,11 +358,11 @@ docs {
 
 2. **HTTP 메서드 포함하지 않기** (필수)
 
-   - ✅ `account.bru` (DELETE 메서드)
-   - ✅ `sign-up.bru` (POST 메서드)
-   - ✅ `mentor-list.bru` (GET 메서드)
-   - ❌ `delete-account.bru` (메서드 중복 발생)
-   - ❌ `post-sign-up.bru` (메서드 중복 발생)
+   - ✅ `account.bru` (DELETE 메서드 → deleteAccount)
+   - ✅ `sign-up.bru` (POST 메서드 → postSignUp)
+   - ✅ `mentor-list.bru` (GET 메서드 → getMentorList)
+   - ❌ `delete-account.bru` (메서드 중복 → deleteDeleteAccount)
+   - ❌ `post-sign-up.bru` (메서드 중복 → postPostSignUp)
 
 3. **명확하고 간결한 이름**
 
@@ -372,24 +372,24 @@ docs {
    - ❌ `test.bru` (불명확)
 
 4. **한글 파일명 피하기**
-   - ❌ `멘토 목록 조회.bru` (쿼리 키 생성 시 문제 가능)
+   - ❌ `멘토 목록 조회.bru` (함수 이름 생성 시 문제 가능)
    - ✅ `mentor-list.bru` (영문 사용)
 
 #### 파일명 예시
 
-| Bruno 파일명                       | HTTP 메서드 | 추출된 키        | 쿼리 키 이름   | 생성 파일명              |
-| ---------------------------------- | ----------- | ---------------- | -------------- | ------------------------ |
-| `멘토 목록 조회 [mentor-list].bru` | GET         | `mentor-list`    | `mentorList`   | `get-mentorList.ts`      |
-| `사용자 프로필 [user-profile].bru` | GET         | `user-profile`   | `userProfile`  | `get-userProfile.ts`     |
-| `지원서 생성 [create].bru`         | POST        | `create`         | `create`       | `post-create.ts`         |
-| `회원 탈퇴 [account].bru`          | DELETE      | `account`        | `account`      | `delete-account.ts`      |
-| `competitors.bru`                  | GET         | `competitors`    | `competitors`  | `get-competitors.ts`     |
-| `멘토 목록 조회.bru`               | GET         | `멘토 목록 조회` | `멘토목록조회` | `get-멘토목록조회.ts` ❌ |
+| Bruno 파일명                       | HTTP 메서드 | 추출된 키        | 함수 이름         |
+| ---------------------------------- | ----------- | ---------------- | ----------------- |
+| `멘토 목록 조회 [mentor-list].bru` | GET         | `mentor-list`    | `getMentorList`   |
+| `사용자 프로필 [user-profile].bru` | GET         | `user-profile`   | `getUserProfile`  |
+| `지원서 생성 [create].bru`         | POST        | `create`         | `postCreate`      |
+| `회원 탈퇴 [account].bru`          | DELETE      | `account`        | `deleteAccount`   |
+| `competitors.bru`                  | GET         | `competitors`    | `getCompetitors`  |
+| `멘토 목록 조회.bru`               | GET         | `멘토 목록 조회` | `get멘토목록조회` ❌ |
 
 **핵심**:
 
 - `한글명 [영문키]` 형식으로 작성하면 한글 설명과 영문 코드를 모두 활용할 수 있습니다
-- 대괄호 안의 영문키만 kebab-case로 작성하면, 자동으로 일관된 쿼리 키와 훅 이름이 생성됩니다!
+- 대괄호 안의 영문키만 kebab-case로 작성하면, 자동으로 일관된 API 함수 이름이 생성됩니다!
 - **HTTP 메서드는 파일명에 포함하지 마세요** - `.bru` 파일 내부에서 자동으로 인식됩니다!
 
 ### 전체 구조 예시
@@ -397,16 +397,16 @@ docs {
 ```
 bruno/
 ├── 7) 어드민 [Admin]/                              # 폴더명: Admin
-│   ├── 목록 조회 [list].bru                       # → QueryKeys.Admin.list → get-list.ts
-│   ├── 생성 [create].bru                          # → QueryKeys.Admin.create → post-create.ts
-│   └── 수정 [update].bru                          # → QueryKeys.Admin.update → put-update.ts
+│   ├── 목록 조회 [list].bru                       # → adminApi.getList
+│   ├── 생성 [create].bru                          # → adminApi.postCreate
+│   └── 수정 [update].bru                          # → adminApi.putUpdate
 ├── 지원서 [applications]/                        # 폴더명: applications
-│   ├── 경쟁자 조회 [competitors].bru               # → QueryKeys.applications.competitors → get-competitors.ts
-│   ├── 상세 조회 [details].bru                     # → QueryKeys.applications.details → get-details.ts
-│   └── 지원서 생성 [create].bru                    # → QueryKeys.applications.create → post-create.ts
+│   ├── 경쟁자 조회 [competitors].bru               # → applicationsApi.getCompetitors
+│   ├── 상세 조회 [details].bru                     # → applicationsApi.getDetails
+│   └── 지원서 생성 [create].bru                    # → applicationsApi.postCreate
 ├── 사용자 [users]/                                # 폴더명: users
-│   ├── 프로필 조회 [profile].bru                  # → QueryKeys.users.profile → get-profile.ts
-│   └── 프로필 수정 [update-profile].bru            # → QueryKeys.users.updateProfile → put-updateProfile.ts
+│   ├── 프로필 조회 [profile].bru                  # → usersApi.getProfile
+│   └── 프로필 수정 [update-profile].bru            # → usersApi.putUpdateProfile
 └── bruno.json
 ```
 
@@ -415,17 +415,17 @@ bruno/
 ```
 src/apis/
 ├── Admin/
-│   ├── get-getList.ts
-│   ├── post-postCreate.ts
+│   ├── api.ts                # adminApi 팩토리
+│   ├── apiDefinitions.ts     # 타입 정의
 │   └── index.ts
 ├── applications/
-│   ├── get-getCompetitors.ts
-│   ├── get-getDetails.ts
+│   ├── api.ts                # applicationsApi 팩토리
+│   ├── apiDefinitions.ts     # 타입 정의
 │   └── index.ts
 ├── users/
-│   ├── get-getProfile.ts
+│   ├── api.ts                # usersApi 팩토리
+│   ├── apiDefinitions.ts     # 타입 정의
 │   └── index.ts
-└── queryKeys.ts
 ```
 
 ## 실전 예시

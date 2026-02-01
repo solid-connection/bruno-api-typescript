@@ -6,7 +6,7 @@
 
 Bruno 저장소에서 `.bru` 파일이 변경되면, 프론트엔드 저장소에 자동으로:
 
-- React Query hooks 생성
+- API 클라이언트 생성
 - TypeScript 타입 생성
 - PR 자동 생성
 
@@ -178,7 +178,7 @@ jobs:
           npm install
           npm run build
 
-      - name: Generate Hooks
+      - name: Generate API Clients
         run: |
           node /tmp/bruno-api-typescript/dist/cli/index.js generate-hooks -i /tmp/bruno -o ./src/apis
 
@@ -192,10 +192,10 @@ jobs:
           body: |
             ## Bruno API 자동 동기화
 
-            Bruno 저장소가 업데이트되어 자동으로 hooks를 생성했습니다.
+            Bruno 저장소가 업데이트되어 자동으로 API 클라이언트를 생성했습니다.
 
             **변경사항**:
-            - React Query hooks 업데이트
+            - API 클라이언트 업데이트
             - TypeScript 타입 업데이트
 ```
 

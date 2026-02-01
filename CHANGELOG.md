@@ -100,7 +100,7 @@ return folderName; // 대괄호가 없으면 폴더명 그대로 반환
 - CLI tool
 - TypeScript type generation
 - API client generation
-- React Query hooks generation
+- Typed API client generation
 
 ---
 
@@ -128,7 +128,7 @@ bruno/
 생성되는 파일명은 동일합니다: `applications/useGetApplicationsList.ts`
 
 #### 2. MSW 핸들러 생성 (선택사항)
-기존 hooks 생성에 `--msw-output` 옵션을 추가하면 됩니다.
+기존 API 클라이언트 생성에 `--msw-output` 옵션을 추가하면 됩니다.
 
 **package.json 업데이트:**
 ```json

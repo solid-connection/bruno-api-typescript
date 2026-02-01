@@ -81,7 +81,7 @@ export function generateApiFunction(apiFunc: ApiFunction, domain: string): strin
 
   // Query 파라미터
   if (method === 'GET') {
-    paramsList.push('params?: Record<string, any>');
+    paramsList.push('params?: Record<string, unknown>');
   }
 
   // Body 파라미터

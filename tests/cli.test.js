@@ -102,8 +102,8 @@ describe('OpenAPI 생성 테스트', () => {
   });
 });
 
-describe('React Query Hooks 생성 테스트', () => {
-  test('기본 훅 파일 생성', () => {
+describe('API 클라이언트 생성 테스트', () => {
+  test('기본 API 파일 생성', () => {
     const inputDir = join(FIXTURES_DIR, 'bruno');
     const outputDir = join(TEST_OUTPUT_DIR, 'apis');
 
@@ -111,33 +111,25 @@ describe('React Query Hooks 생성 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    // queryKeys.ts 생성 확인
-    const queryKeysFile = join(outputDir, 'queryKeys.ts');
-    assert.ok(existsSync(queryKeysFile), 'queryKeys.ts가 생성되어야 함');
-
-    // 도메인별 디렉토리 생성 확인
     const usersDir = join(outputDir, 'users');
     const applicationsDir = join(outputDir, 'applications');
     assert.ok(existsSync(usersDir), 'users 디렉토리가 생성되어야 함');
     assert.ok(existsSync(applicationsDir), 'applications 디렉토리가 생성되어야 함');
 
-    // API 팩토리 파일 생성 확인
     const usersApiFile = join(usersDir, 'api.ts');
     const applicationsApiFile = join(applicationsDir, 'api.ts');
     assert.ok(existsSync(usersApiFile), 'users/api.ts 팩토리 파일이 생성되어야 함');
     assert.ok(existsSync(applicationsApiFile), 'applications/api.ts 팩토리 파일이 생성되어야 함');
 
-    // 훅 파일 생성 확인
-    const userProfileHook = join(usersDir, 'get-getProfile.ts');
-    const competitorsHook = join(applicationsDir, 'get-getCompetitors.ts');
-    
-    assert.ok(existsSync(userProfileHook), 'getProfile 훅이 생성되어야 함');
-    assert.ok(existsSync(competitorsHook), 'getCompetitors 훅이 생성되어야 함');
+    const usersDefinitionsFile = join(usersDir, 'apiDefinitions.ts');
+    const applicationsDefinitionsFile = join(applicationsDir, 'apiDefinitions.ts');
+    assert.ok(existsSync(usersDefinitionsFile), 'users/apiDefinitions.ts 파일이 생성되어야 함');
+    assert.ok(existsSync(applicationsDefinitionsFile), 'applications/apiDefinitions.ts 파일이 생성되어야 함');
 
-    console.log('✅ 기본 훅 파일 생성 테스트 통과');
+    console.log('✅ 기본 API 파일 생성 테스트 통과');
   });
 
-  test('훅 파일 내용 검증', () => {
+  test('API 정의 파일 내용 검증', () => {
     const inputDir = join(FIXTURES_DIR, 'bruno');
     const outputDir = join(TEST_OUTPUT_DIR, 'apis-content');
 
@@ -145,25 +137,17 @@ describe('React Query Hooks 생성 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    const userProfileHook = join(outputDir, 'users', 'get-getProfile.ts');
-    const content = readFileSync(userProfileHook, 'utf-8');
+    const usersDefinitionsFile = join(outputDir, 'users', 'apiDefinitions.ts');
+    const content = readFileSync(usersDefinitionsFile, 'utf-8');
 
-    // 필수 import 확인
-    assert.ok(content.includes('import { useQuery }'), 'useQuery import가 있어야 함');
-    assert.ok(content.includes('import { AxiosError }'), 'AxiosError import가 있어야 함');
-    assert.ok(content.includes('QueryKeys'), 'QueryKeys import가 있어야 함');
-    assert.ok(content.includes('from "./api"'), '팩토리 import가 있어야 함');
-    assert.ok(content.includes('usersApi'), 'usersApi 팩토리 import가 있어야 함');
+    assert.ok(content.includes('import type'), 'type-only import가 있어야 함');
+    assert.ok(content.includes('from \'./api\''), 'api.ts로부터 타입 import가 있어야 함');
+    assert.ok(content.includes('export const usersApiDefinitions'), 'usersApiDefinitions 객체가 있어야 함');
+    assert.ok(content.includes('method:'), 'method 필드가 있어야 함');
+    assert.ok(content.includes('path:'), 'path 필드가 있어야 함');
+    assert.ok(content.includes('response:'), 'response 필드가 있어야 함');
 
-    // 타입 정의 확인
-    assert.ok(content.includes('export'), 'export가 있어야 함');
-
-    // 함수 정의 확인
-    assert.ok(content.includes('const use'), '훅 함수가 있어야 함');
-    assert.ok(content.includes('export default'), 'default export가 있어야 함');
-    assert.ok(content.includes('usersApi.getProfile'), '팩토리 함수를 사용해야 함');
-
-    console.log('✅ 훅 파일 내용 검증 테스트 통과');
+    console.log('✅ API 정의 파일 내용 검증 테스트 통과');
   });
 
   test('API 팩토리 파일 내용 검증', () => {
@@ -182,7 +166,7 @@ describe('React Query Hooks 생성 테스트', () => {
 
     // 팩토리 객체 확인
     assert.ok(content.includes('export const usersApi'), 'usersApi 팩토리 객체가 있어야 함');
-    assert.ok(content.includes('getProfile:'), 'getProfile 함수가 있어야 함');
+    assert.ok(content.includes('getGetProfile:'), 'getGetProfile 함수가 있어야 함');
 
     // 함수 시그니처 확인
     assert.ok(content.includes('async ('), 'async 함수가 있어야 함');
@@ -199,17 +183,16 @@ describe('React Query Hooks 생성 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    // 도메인별 index.ts 파일 확인
     const usersIndex = join(outputDir, 'users', 'index.ts');
     const applicationsIndex = join(outputDir, 'applications', 'index.ts');
 
     assert.ok(existsSync(usersIndex), 'users/index.ts가 생성되어야 함');
     assert.ok(existsSync(applicationsIndex), 'applications/index.ts가 생성되어야 함');
 
-    // index 파일 내용 확인
     const usersIndexContent = readFileSync(usersIndex, 'utf-8');
     assert.ok(usersIndexContent.includes('export'), 'export가 있어야 함');
-    assert.ok(usersIndexContent.includes('default'), 'default가 있어야 함');
+    assert.ok(usersIndexContent.includes('usersApi'), 'usersApi export가 있어야 함');
+    assert.ok(usersIndexContent.includes('apiDefinitions'), 'apiDefinitions export가 있어야 함');
 
     console.log('✅ index 파일 생성 테스트 통과');
   });
@@ -255,13 +238,13 @@ describe('새로운 폴더명 패턴 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    // 7) 어드민 [Admin] → Admin 폴더가 생성되었는지 확인
     const adminDir = join(outputDir, 'Admin');
     assert.ok(existsSync(adminDir), '7) 어드민 [Admin] 폴더에서 Admin이 생성되어야 함');
 
-    // 훅 파일 생성 확인
-    const hookFile = join(adminDir, 'get-getList.ts');
-    assert.ok(existsSync(hookFile), 'getList 훅이 생성되어야 함');
+    const apiFile = join(adminDir, 'api.ts');
+    const definitionsFile = join(adminDir, 'apiDefinitions.ts');
+    assert.ok(existsSync(apiFile), 'Admin/api.ts 파일이 생성되어야 함');
+    assert.ok(existsSync(definitionsFile), 'Admin/apiDefinitions.ts 파일이 생성되어야 함');
 
     console.log('✅ 숫자) 한글명 [영문키] 패턴 테스트 통과');
   });
@@ -274,21 +257,15 @@ describe('새로운 폴더명 패턴 테스트', () => {
       cwd: join(__dirname, '..'),
     });
 
-    // QueryKeys 파일 확인
-    const queryKeysFile = join(outputDir, 'queryKeys.ts');
-    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
+    const adminApiFile = join(outputDir, 'Admin', 'api.ts');
+    const adminApiContent = readFileSync(adminApiFile, 'utf-8');
 
-    // 목록 조회 [get-list].bru → getList로 추출되어야 함
-    assert.ok(queryKeysContent.includes('getList'), 'getList 쿼리 키가 생성되어야 함');
-    assert.ok(queryKeysContent.includes("'Admin.getList'"), 'Admin.getList 쿼리 키가 생성되어야 함');
+    assert.ok(adminApiContent.includes('getGetList'), 'getGetList 함수가 생성되어야 함');
+    assert.ok(adminApiContent.includes('export const adminApi'), 'adminApi 팩토리가 생성되어야 함');
 
-    // 훅 파일 확인
-    const hookFile = join(outputDir, 'Admin', 'get-getList.ts');
-    assert.ok(existsSync(hookFile), '목록 조회 [get-list].bru에서 getList 훅이 생성되어야 함');
-
-    const hookContent = readFileSync(hookFile, 'utf-8');
-    assert.ok(hookContent.includes('getList'), '훅 내용에 getList가 포함되어야 함');
-    assert.ok(hookContent.includes('useGetList'), 'useGetList 훅이 생성되어야 함');
+    const definitionsFile = join(outputDir, 'Admin', 'apiDefinitions.ts');
+    const definitionsContent = readFileSync(definitionsFile, 'utf-8');
+    assert.ok(definitionsContent.includes('getGetList'), 'getGetList 정의가 생성되어야 함');
 
     console.log('✅ 한글명 [영문키] 파일명 패턴 테스트 통과');
   });
@@ -332,12 +309,10 @@ describe('상태 코드별 응답 파싱 테스트', () => {
 
 describe('컬렉션 폴더 지원 테스트', () => {
   test('Solid Connection 폴더 제거 및 도메인 추출', () => {
-    // Solid Connection 폴더 구조 fixture 생성
     const collectionFixtureDir = join(TEST_OUTPUT_DIR, 'collection-fixture');
     const collectionDir = join(collectionFixtureDir, 'Solid Connection', '1) 인증 [Auth]');
     mkdirSync(collectionDir, { recursive: true });
     
-    // 테스트용 .bru 파일 생성
     const testFile = join(collectionDir, 'sign-out.bru');
     const bruContent = `meta {
   name: Sign Out
@@ -353,23 +328,15 @@ post /auth/sign-out
       cwd: join(__dirname, '..'),
     });
 
-    // Auth 도메인 디렉토리 생성 확인 (Solid Connection 제거)
     const authDir = join(outputDir, 'Auth');
     assert.ok(existsSync(authDir), 'Auth 디렉토리가 생성되어야 함 (Solid Connection 폴더 제거)');
 
-    // queryKeys.ts에서 Auth 도메인 확인
-    const queryKeysFile = join(outputDir, 'queryKeys.ts');
-    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
-    assert.ok(queryKeysContent.includes('Auth'), 'Auth 도메인이 queryKeys에 있어야 함');
+    const authApiFile = join(authDir, 'api.ts');
+    const authApiContent = readFileSync(authApiFile, 'utf-8');
+    assert.ok(authApiContent.includes('postSignOut'), 'postSignOut 함수가 생성되어야 함 (메서드 prefix 포함)');
 
-    // 생성된 파일 확인
-    const signOutHook = join(authDir, 'post-signOut.ts');
-    assert.ok(existsSync(signOutHook), 'post-signOut.ts 파일이 생성되어야 함');
-
-    // 함수명에 메서드 prefix 포함 확인
-    const signOutHookContent = readFileSync(signOutHook, 'utf-8');
-    assert.ok(signOutHookContent.includes('postSignOut'), 'postSignOut 함수가 생성되어야 함 (메서드 prefix 포함)');
-    assert.ok(signOutHookContent.includes('usePostSignOut'), 'usePostSignOut 훅이 생성되어야 함 (메서드 prefix 포함)');
+    const authDefinitionsFile = join(authDir, 'apiDefinitions.ts');
+    assert.ok(existsSync(authDefinitionsFile), 'Auth/apiDefinitions.ts 파일이 생성되어야 함');
 
     console.log('✅ Solid Connection 폴더 제거 및 도메인 추출 테스트 통과');
   });
@@ -377,12 +344,10 @@ post /auth/sign-out
 
 describe('파일명 규칙 테스트', () => {
   test('메서드 prefix 없는 파일명 정상 동작 및 함수명에 메서드 prefix 포함', () => {
-    // 메서드 prefix가 없는 파일 fixture 생성 (권장 방식)
     const noPrefixFixtureDir = join(TEST_OUTPUT_DIR, 'no-prefix-fixture');
     const usersDir = join(noPrefixFixtureDir, 'users');
     mkdirSync(usersDir, { recursive: true });
     
-    // account.bru 파일 생성 (DELETE 메서드)
     const accountFile = join(usersDir, 'account.bru');
     const accountContent = `meta {
   name: Delete Account
@@ -393,7 +358,6 @@ delete /users/account
 `;
     require('fs').writeFileSync(accountFile, accountContent);
 
-    // sign-up.bru 파일 생성 (POST 메서드)
     const signUpFile = join(usersDir, 'sign-up.bru');
     const signUpContent = `meta {
   name: Sign Up
@@ -426,28 +390,15 @@ docs {
       cwd: join(__dirname, '..'),
     });
 
-    // queryKeys.ts 확인
-    const queryKeysFile = join(outputDir, 'queryKeys.ts');
-    const queryKeysContent = readFileSync(queryKeysFile, 'utf-8');
-    assert.ok(queryKeysContent.includes('account'), 'account 쿼리 키가 생성되어야 함');
-    assert.ok(queryKeysContent.includes('signUp'), 'signUp 쿼리 키가 생성되어야 함');
+    const apiFile = join(outputDir, 'users', 'api.ts');
+    const apiContent = readFileSync(apiFile, 'utf-8');
+    assert.ok(apiContent.includes('deleteAccount'), 'deleteAccount 함수가 생성되어야 함 (메서드 prefix 포함)');
+    assert.ok(apiContent.includes('postSignUp'), 'postSignUp 함수가 생성되어야 함 (메서드 prefix 포함)');
 
-    // 생성된 파일명 확인
-    const accountHook = join(outputDir, 'users', 'delete-account.ts');
-    const signUpHook = join(outputDir, 'users', 'post-signUp.ts');
-    assert.ok(existsSync(accountHook), 'delete-account.ts 파일이 생성되어야 함');
-    assert.ok(existsSync(signUpHook), 'post-signUp.ts 파일이 생성되어야 함');
-
-    // 함수명에 메서드 prefix 포함 확인
-    const accountHookContent = readFileSync(accountHook, 'utf-8');
-    assert.ok(accountHookContent.includes('deleteAccount'), 'deleteAccount 함수가 생성되어야 함 (메서드 prefix 포함)');
-    assert.ok(accountHookContent.includes('useDeleteAccount'), 'useDeleteAccount 훅이 생성되어야 함 (메서드 prefix 포함)');
-    assert.ok(!accountHookContent.includes('account('), 'account 함수는 생성되지 않아야 함 (메서드 prefix 없음)');
-
-    const signUpHookContent = readFileSync(signUpHook, 'utf-8');
-    assert.ok(signUpHookContent.includes('postSignUp'), 'postSignUp 함수가 생성되어야 함 (메서드 prefix 포함)');
-    assert.ok(signUpHookContent.includes('usePostSignUp'), 'usePostSignUp 훅이 생성되어야 함 (메서드 prefix 포함)');
-    assert.ok(!signUpHookContent.includes('signUp('), 'signUp 함수는 생성되지 않아야 함 (메서드 prefix 없음)');
+    const definitionsFile = join(outputDir, 'users', 'apiDefinitions.ts');
+    const definitionsContent = readFileSync(definitionsFile, 'utf-8');
+    assert.ok(definitionsContent.includes('deleteAccount'), 'deleteAccount 정의가 생성되어야 함');
+    assert.ok(definitionsContent.includes('postSignUp'), 'postSignUp 정의가 생성되어야 함');
 
     console.log('✅ 메서드 prefix 없는 파일명 및 함수명 메서드 prefix 포함 테스트 통과');
   });
@@ -608,4 +559,3 @@ get /test/no-docs
 });
 
 console.log('\n🎉 모든 테스트 완료!');
-
