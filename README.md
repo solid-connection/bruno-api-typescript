@@ -92,6 +92,7 @@ docs {
 
 ## 추가 문서
 
+- **[사용 방법 가이드](./docs/usage-guide.md)** - CLI 사용법과 프로젝트 통합 방법
 - **[GitHub Apps 설정 가이드](./docs/github-apps-simple.md)** - Workflow 파일 예시 포함
 - **[Bruno 파일 작성 튜토리얼](./docs/bruno-tutorial.md)** - 단계별 따라하기
 - **[Bruno 파일 작성 가이드](./docs/bruno-guide.md)** - 상세 레퍼런스
